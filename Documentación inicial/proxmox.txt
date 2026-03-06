@@ -1,0 +1,11 @@
+https://servidores.com.co/proxmox/?gad_campaignid=23485336018 - Explición
+https://www.xda-developers.com/proxmox-guide/ - Manual basico
+https://www.proxmox.com/en/services/support-services/support#support-resources - proxmox principal	
+https://pve.proxmox.com/pve-docs/chapter-pve-bibliography.html - Bibliografia proxmox
+https://pve.proxmox.com/pve-docs/ - Manuales proxmox
+https://isnum.com/guia-de-proxmox-ve-instalacion-y-creacion-de-maquinas-virtuales/ - Beneficios ante WMware/Guia completa
+https://youtu.be/kqZNFD0JNBc - Video guia
+https://www.postproductive.tv/2024/12/18/a-silly-fix-for-proxmox-novnc-failed-to-connect-to-server-errors/ - solución "Error al conectarse al servidor"
+https://github.com/community-scripts/ProxmoxVE - Script helper
+https://tecnocratica.net/wikicratica/books/proxmox-ve/page/permisos-en-proxmox-ve-roles-y-privilegios - Permisos y privilegios
+https://pve.proxmox.com/wiki/User_Management - Gestión de usuarios 
