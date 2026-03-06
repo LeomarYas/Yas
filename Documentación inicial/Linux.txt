@@ -1,0 +1,27 @@
+https://distrobox.it/ - Distrobox
+https://distrosea.com/es/ - Distrosea
+https://wiki.archlinux.org/title/Installation_guide_(Espa%C3%B1ol) - Wiki arch
+https://wiki.debian.org/es/DebianIntroduction - Wiki debian
+https://blackarch.org/ - BlackArch
+https://www.youtube.com/watch?v=ZBOmSjEltpY - Instalación en video (Ignorar la parte de la personalización de DE)
+https://openbox.org/ - Openbox
+https://openbox.org/help/Contents - Docs Openbox
+https://www.freecodecamp.org/espanol/news/comandos-de-linux/ - Comandos de la terminal
+https://wiki.archlinux.org/title/Command-line_shell_(Espa%C3%B1ol) - Shell arch 
+https://gist.github.com/mjkstra/96ce7a5689d753e7a6bdd92cdc169bae - Guia facil arch
+https://wiki.archlinux.org/title/Network_configuration/Wireless - Tener internet en arch
+https://wiki.archlinux.org/title/Network_configuration_(Espa%C3%B1ol) Español
+http://www.tinycorelinux.net/ Tiny core linux
+https://thehackernews.com/2025/11/hackers-weaponize-windows-hyper-v-to.html - Noticia Alpine
+https://www.bitdefender.com/en-us/blog/businessinsights/curly-comrades-evasion-persistence-hidden-hyper-v-virtual-machines - Noticia completa
+https://wiki.archlinux.org/title/Dotfiles_(Espa%C3%B1ol) - Crear dotfiles
+https://www.datacamp.com/es/tutorial/dotfiles - Tutorial dotfiles
+https://www.debian.org/releases/forky/amd64/ Instalación de debian
+https://ubuntu.com/server/docs/ - Ubuntu server
+https://documentation.ubuntu.com/server/how-to/ - Guias de ubuntu server
+https://docs.rockylinux.org/ - Rocky linux documentación
+https://wiki.rockylinux.org/ Rocky wiki
+https://docs.alpinelinux.org/user-handbook/0.1a/index.html - Alpine documentacion
+https://blackarch.org/blackarch-guide-en.pdf - Guia blackArch
+https://www.kali.org/tools/ - Kali tools
+https://www.gns3.com/marketplace/appliances/kali-linux-cli - Kali Gns3
