@@ -1,1 +1,14 @@
 
+https://www.cisco.com/c/es_mx/support/servers-unified-computing/ucs-c220-m4-rack-server/model.html - Pagina oficial
+https://www.cisco.com/c/ja_jp/td/docs/unified_computing/ucs/c/hw/C220M4/install/C220M4/install.html - Instalación del servidor
+https://www.youtube.com/watch?v=4A5nedPZkyM - Video explicativo 	
+https://www.youtube.com/watch?v=RlxQaPWJFUA&list=PLO0SXQmz3ypnXBFMrsi-mK1mF4m9HZ42O - Playlist completa
+https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/c/hw/C220M4/install/C220M4/overview.html - Manual pequeño
+https://www.manuales.com.co/cisco/ucs-c220-m4/manual?p=125 - Manual grande
+https://www.manualslib.com/manual/1530155/Cisco-Ucs-C220-M4.html?page=12#manual - Manual en español
+https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/c/sw/cli/config/guide/2-0/b_Cisco_UCS_C-Series_CLI_Configuration_Guide_201.html - Cisco
+https://www.cisco.com/c/es_mx/support/servers-unified-computing/ucs-c-series-integrated-management-controller/series.html - Cisco IMC
+https://altatechnologies.com/products/cisco-ucsc-mraid12g -  Cisco 12G SAS Modular RAID Controller
+https://www.fortinet.com/lat/resources/cyberglossary/what-is-firmware - Conceptos basicos del firmware
+https://www.techtarget.com/whatis/definition/firmware - Tipos de firmware
+https://www.cisco.com/c/es_mx/support/docs/smb/General/Beginner_How_to_Download_Upgrade_firmware.html - Cisco firmware
