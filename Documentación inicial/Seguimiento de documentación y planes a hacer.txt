@@ -1,0 +1,23 @@
+Proxmox -> Teoricamente completo
+Gns3 -> A medias, falta mucho
+Linux -> Falta la gran mayoria
+-Servidor Cisco -> Maomenos completo
+Blue vs red -> Falta la gran mayoria
+bash y zsh --> Incompleto
+
+
+
+---------------------
+1.Gestor de importaciones y exportaciones de dotfiles (Configuraciones) via script -Dotctl
+2.Gestor de importaciones y exportaciones de snaptshots (Maquinas completas).
+3.gestión de configuraciones multiples para perfiles de usuarios (Distintos modos) (Firewall, aplicaciones, sitios web localhost, etc....)
+* Pasos 1 y 3 requieren configurar los gestores de paquetes de cada distro, además de una para windows server 
+4. Gestor de movimiento de archivos con usb/Disco/Github para los pasos 1 y 2 (Script y ssh)
+5. Encriptación de dotfile/Snaptshot enemiga
+6. Niveles de enemigos para blue team en solitario (Shannon, scripts de vulneración, disitntos virus)
+7. Accesibilidad para usuarios via navegador
+8. Scripts y configuraciones de calidad de vida (Creacion de dotfiles y snaptshots automatica)
+	9. Pools dinamicas de permisos para dinamicas de equipos
+10. Creacion de multiples redes para simular casos mas reales
+11. IPv6?
+12. Honeypots
