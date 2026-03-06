@@ -1,0 +1,13 @@
+https://docs.gns3.com/docs/getting-started/installation/linux/ - Instalación  
+https://docs.gns3.com/docs/ - Documentación oficial  
+https://www.youtube.com/watch?v=D5MYhXeITSc&list=PLy07KpesUR00svxy0eOkjL4L3ymOXmvzf - Curso basico
+https://hub.docker.com/u/gns3/ - Docker
+https://docs.gns3.com/docs/emulators/create-a-docker-container-for-gns3/ - Docker conteiner
+https://docs.gns3.com/docs/emulators/docker-support-in-gns3/ - Soporte docker
+https://github.com/jsimonetti/docker-gns3-server - Git gns3
+https://hub.docker.com/r/gns3/openvswitch - Ultima actualización del docker
+https://github.com/iamNCJ/gns3-docker/blob/main/docker-compose.yaml - Docker compose (Codigo yaml)
+https://github.com/iamNCJ/gns3-docker/blob/main/README.md - Readme compose 
+https://docs.gns3.com/docs/emulators/cisco-ios-images-for-dynamips Imagenes cisco
+https://xn--deepinenespaol-1nb.org/wiki/gns3/ - Curso en español
+https://www.gns3.com/marketplace/appliances/kali-linux-cli kali gns3
