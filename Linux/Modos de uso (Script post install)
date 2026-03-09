@@ -1,0 +1,28 @@
+Blue team humano:
+Vulnerable: Ninguna protección
+Basico: Minimo estandar de seguridad
+Defensivo: Mayor seguridad, a nivel empresarial
+Fortaleza: Todo cerrado
+Honeypot: Señuelo, tcl honeypot
+
+Blue team atacable:
+Limpio: Servidor de algun tipo, sin vulnerabilidades intencionales ni defensas fuertes
+Vulnerables basicos: Malas practicas comunes
+Avanzado: Seguridad real, sin apoyo
+Automatico: Seguridad real y competente, apoyado por IA que lo defienda activamente (Solo en linux)
+
+Red team humano:
+Novato - Bash basico, herramientas simples con instrucciones de uso
+Escaneador: Perona que busca vulnerabilidades, se apoya del tlc de escaneo
+Picaro: Evade defensas, limpia logs, busca entradas laterales, busca no ser detectado
+Explotador: Fuerza bruta, DDoS, lo que haga falta para romperlo todo, se apoya del tlc enjambre
+Experto: Todo a la mano sin explicación, solo objetivo, elige entre zsh y bash a conveniencia
+
+Red team autonomo:
+Escaner - Declara vulnerabilidades, pero no explota nada
+Exploits basicos: Vulnera cosas tipicas, como servidores desactualizados y demás
+Virus aislados - Uno o dos virus simples que atacarán al servidor. Ya sea elegido por el usuario o elegido al azar
+Nivel medio - Caldera, para automatizar un ataque basico
+Shannon lite - IA ofensiva en nivel bajo, buscará más que todo lo anterior
+Zoologico - Infecciones periodicas de distintos virus de todo tipo, podriamos nombrarlo nivel pvz
+Shannon - Nivel final, imposible defenderse de esta IA sin un buen plan
