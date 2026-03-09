@@ -1,1 +1,31 @@
+// En este archivo se dejará la función de cada distro usada. Tambien estarán los nieves de 
 
+Blue team:
+Alpine os - Ligero y fuerte
+Ubuntu/Debian - Basico y configurable
+Kali purple - Perfecto para blue team
+PredatorOS - Defensor integral
+
+Victimas: 
+Windows server - Inutil desde su concepción
+Windows 10 - Inseguro, más sin parches
+Ubuntu server - Multiusos
+Metasploitable - Ubuntu mal configurado a proposito
+Rocky - Tipico empresarial (Clon 1 a 1 de red hat)
+
+Dockers:
+Multiples 
+VulnHive: 12 nodos de vulnerabilidades
+Redis y sql - Bases de datos
+Container escape lab - Interesante, para practicas de escape
+
+Red Team:
+Black Arch: +2800 herramientas, potente pero dificil
+Kali linux +600, más facil
+Debian: Opción simple y con pocas herramientas, para quien quiera hacerse una base propia
+
+Tiny Cores linux (TCL)
+Nodo de enjambre - Ataques DDos sincronizados
+Nodo de escaneo - Reconocimiento de vulnerabilidades
+Nodo de infiltración - Robo de datos 
+Nodo señuelo - Honeypot, esta herramienta es principalmente para blue
