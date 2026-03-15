@@ -1,0 +1,328 @@
+CASO 3: FALTA DE MONITOREO Y LOGS
+"Sin Logs C.A."
+1. DESCRIPCIÓN GENERAL
+"Sin Logs C.A." es una empresa que ha implementado una red correctamente segmentada: tiene una DMZ para servidores públicos, una red interna para empleados y una red de gestión para administradores. Sin embargo, carece por completo de sistemas de monitoreo, tiene los logs desactivados o sobrescritos, y no centraliza la información de seguridad. Esto significa que aunque la red está bien diseñada en teoría, en la práctica los ataques pasan desapercibidos.
+
+2. OBJETIVO DEL CASO
+Demostrar que:
+
+La segmentación de red no es suficiente si no hay visibilidad de lo que ocurre.
+
+Sin monitoreo ni logs, los atacantes pueden operar durante semanas o meses sin ser detectados.
+
+El borrado de logs permite al atacante cubrir sus huellas, impidiendo el análisis forense.
+
+Una empresa puede ser vulnerada y no enterarse hasta que ocurre un daño mayor (fuga de datos, ransomware, etc.).
+
+3. CONFIGURACIÓN DETALLADA DEL ESCENARIO EN GNS3
+Construimos una red segmentada con tres zonas claramente diferenciadas, usando un firewall (pfSense) para controlar el tráfico entre ellas.
+
+Topología:
+
+text
+[Internet simulado] --- [pfSense] --- [Switch DMZ] --- [Servidor web (DVWA)]
+                           |
+                           +--- [Switch Interna] --- [PC Administrador]
+                           |
+                           +--- [Switch Gestión] --- [Sensores (Alpine) - pero sin monitoreo real]
+El atacante (Kali) se coloca en la zona de Internet simulada, con IP en la subred externa del firewall. El servidor web está en DMZ, la PC de administrador en Interna, y los sensores Alpine en Gestión (pero no están recolectando logs activamente, o los logs se pierden).
+
+Máquinas necesarias:
+Máquina	Sistema	Rol	Subred	IP	Servicios
+Atacante	Kali Linux	Red Team	WAN (simulada)	192.168.122.100	-
+Firewall	pfSense	Router/firewall	Multi	192.168.122.1 (WAN), 10.0.0.1 (DMZ), 172.16.1.1 (Interna), 192.168.1.1 (Gestión)	-
+Servidor web	Ubuntu Server	Víctima en DMZ	DMZ (10.0.0.0/24)	10.0.0.10	HTTP (DVWA), SSH
+PC Administrador	Windows 10	Usuario interno	Interna (172.16.1.0/24)	172.16.1.100	RDP, SMB
+Sensor 1	Alpine Linux	Sensor de logs (pero sin centralización)	Gestión (192.168.1.0/24)	192.168.1.10	rsyslog (recibe pero no guarda)
+Sensor 2	Alpine Linux	Sensor de red (sin alertas)	Gestión	192.168.1.20	-
+Detalles de configuración:
+
+a) pfSense:
+
+Instalar pfSense en una VM con 3 interfaces de red (WAN, DMZ, LAN, OPT1 para Gestión). En GNS3, pfSense necesita 4 interfaces.
+
+Configurar reglas básicas:
+
+WAN a DMZ: permitir HTTP (puerto 80) y SSH (22) solo desde la IP del atacante (para simular acceso externo).
+
+DMZ a Interna: denegar todo (el servidor web no debe poder comunicarse con la red interna directamente).
+
+Interna a DMZ: permitir HTTP (para que el administrador pueda ver la web).
+
+Gestión: aislada, solo accesible desde la propia red (los sensores no necesitan salida).
+
+No configurar reglas de logging ni alertas. El firewall no registrará tráfico (o lo hará mínimamente y se sobrescribirá rápido).
+
+b) Servidor web (Ubuntu con DVWA):
+
+Instalar Apache, MySQL, PHP y DVWA, configurado en nivel "low".
+
+No instalar ningún agente de monitoreo ni enviar logs a un servidor central.
+
+Configurar logs locales pero con rotación rápida que sobrescribe los archivos cada pocos minutos (por ejemplo, logrotate con tamaño pequeño y sin histórico). Esto simula que los logs se pierden.
+
+Opcional: deshabilitar el logging de Apache o MySQL.
+
+c) PC Administrador (Windows 10):
+
+Usuario con sesión iniciada.
+
+Compartir una carpeta con documentos sensibles (simulados).
+
+No tener antivirus o tenerlo desactualizado (para facilitar el ataque lateral, pero no es el foco principal).
+
+No enviar logs a ningún lado.
+
+d) Sensores Alpine (2 máquinas):
+
+Instalación mínima de Alpine Linux.
+
+En el Sensor 1, instalar rsyslog y configurarlo para recibir logs, pero no almacenarlos persistentemente (por ejemplo, buffer en memoria que se pierde al reiniciar, o configurar un archivo de log con rotación inmediata que se sobrescribe). O simplemente no iniciar el servicio.
+
+En el Sensor 2, no instalar nada. Solo tener conectividad para demostrar que existe la red de gestión.
+
+4. PASOS PARA MONTAR EL ESCENARIO EN GNS3
+Paso 1: Crear el proyecto "Caso3_SinMonitoreo".
+
+Paso 2: Preparar las máquinas en VirtualBox:
+
+pfSense: crear VM con 4 interfaces de red, todas en "Red Interna" con nombres específicos: "WAN", "DMZ", "INTERNA", "GESTION".
+
+Ubuntu Server: interfaz en "Red Interna DMZ".
+
+Windows 10: interfaz en "Red Interna INTERNA".
+
+Alpine 1 y 2: interfaces en "Red Interna GESTION".
+
+Kali: interfaz en "Red Interna WAN".
+
+Paso 3: Importar a GNS3 y conectar:
+
+En GNS3, arrastrar un "switch Ethernet" para cada zona (WAN, DMZ, INTERNA, GESTION) o usar un solo switch con VLANs (más complejo). Recomendación: usar switches separados para claridad.
+
+Conectar:
+
+Kali al switch WAN.
+
+pfSense: interfaz WAN al switch WAN, interfaz DMZ al switch DMZ, interfaz LAN al switch INTERNA, interfaz OPT1 al switch GESTION.
+
+Ubuntu al switch DMZ.
+
+Windows al switch INTERNA.
+
+Alpine 1 y 2 al switch GESTION.
+
+Paso 4: Configurar IPs y verificar conectividad básica.
+
+pfSense: Acceder por consola y asignar IPs a cada interfaz:
+
+WAN: 192.168.122.1/24
+
+DMZ: 10.0.0.1/24
+
+LAN: 172.16.1.1/24
+
+OPT1: 192.168.1.1/24
+
+Kali: 192.168.122.100/24, gateway 192.168.122.1.
+
+Ubuntu: 10.0.0.10/24, gateway 10.0.0.1.
+
+Windows: 172.16.1.100/24, gateway 172.16.1.1.
+
+Alpine 1: 192.168.1.10/24, gateway 192.168.1.1.
+
+Alpine 2: 192.168.1.20/24, gateway 192.168.1.1.
+
+Paso 5: Verificar conectividad con restricciones:
+
+Desde Kali, hacer ping a Ubuntu (10.0.0.10) -> debe funcionar (regla WAN a DMZ permite ICMP? si no, permitirlo temporalmente).
+
+Desde Kali a Windows (172.16.1.100) -> no debe funcionar (está bloqueado).
+
+Desde Ubuntu a Windows -> no debe funcionar.
+
+Desde Windows a Ubuntu (HTTP) -> debe funcionar (el admin puede ver la web).
+
+Desde los Alpine, solo entre ellos y hacia pfSense (192.168.1.1) deben tener conectividad; hacia otras redes no.
+
+Paso 6: Configurar servicios y vulnerabilidades:
+
+En Ubuntu, asegurar DVWA funciona y es accesible desde Kali (http://10.0.0.10/dvwa).
+
+En Windows, compartir una carpeta "Confidencial" con permisos de lectura para todos (simula mala práctica).
+
+En Alpine, no configurar nada especial; simplemente existen.
+
+Paso 7: Deshabilitar logs:
+
+En Ubuntu, editar /etc/logrotate.d/apache2 para que rote cada minuto y solo guarde 1 rotación, o incluso configurar Apache para que no loguee.
+
+En pfSense, no activar logging en las reglas de firewall, o si está activo por defecto, asegurarse de que los logs se almacenen en RAM y se pierdan al reiniciar.
+
+5. ATAQUE PASO A PASO (DESDE KALI)
+Fase 1: Reconocimiento externo
+
+Desde Kali, escaneamos la IP pública (192.168.122.1) para ver qué puertos están abiertos en el firewall. Pero el firewall no debe tener puertos abiertos en WAN (excepto los que hayamos reenviado). En este caso, hemos permitido HTTP y SSH hacia el servidor web. Entonces, hacemos un escaneo directo al servidor:
+
+bash
+nmap -sV 10.0.0.10
+Detectamos puerto 80 (Apache), 22 (SSH), quizá 3306 (MySQL) si está expuesto.
+
+Fase 2: Ataque a la aplicación web (DVWA)
+
+Accedemos a http://10.0.0.10/dvwa y realizamos un ataque de inyección SQL (como en el Caso 1) para obtener credenciales de usuarios de la aplicación.
+
+En DVWA (nivel low), en la sección SQL Injection, ingresamos:
+
+text
+' OR '1'='1' -- -
+Esto puede listar usuarios de la base de datos. Capturamos los resultados.
+
+Fase 3: Extracción de información y acceso al servidor
+
+Si logramos obtener credenciales, podríamos intentar conectarnos por SSH si encontramos un usuario y contraseña válidos (por ejemplo, si el administrador reutiliza contraseñas). Supongamos que obtenemos un usuario "admin" con contraseña "password". Probamos:
+
+bash
+ssh admin@10.0.0.10
+Si funciona, tenemos acceso al servidor.
+
+Fase 4: Movimiento lateral hacia la red interna
+
+Una vez dentro del servidor web (DMZ), intentamos conectarnos a la red interna (172.16.1.0/24). Desde el servidor, hacemos un escaneo rápido:
+
+bash
+nmap -sn 172.16.1.0/24
+Descubrimos la IP 172.16.1.100 (Windows). Probamos si hay puertos accesibles:
+
+bash
+nmap -p 445,3389 172.16.1.100
+Si el firewall (pfSense) tiene una regla que permita desde DMZ a Interna? En nuestra configuración inicial, denegamos todo. Pero a veces los administradores cometen errores y dejan algún puerto abierto. Para el caso, asumamos que el firewall no permite el tráfico, así que el movimiento lateral no es posible directamente. Esto demuestra que la segmentación funciona, pero el problema es que el ataque ya ocurrió en la DMZ y no hay logs.
+
+Fase 5: Borrado de huellas
+
+En el servidor comprometido, el atacante borra los logs para cubrir su rastro:
+
+bash
+cat /dev/null > /var/log/apache2/access.log
+cat /dev/null > /var/log/apache2/error.log
+cat /dev/null > /var/log/mysql/error.log
+history -c
+Si los logs estaban rotando rápidamente, quizá ni siquiera quede evidencia del ataque.
+
+Fase 6: Verificación de que no hay monitoreo
+
+Desde Kali, podemos intentar generar tráfico anómalo (por ejemplo, un escaneo agresivo) y luego verificar si en algún lugar hay registros. Como los sensores Alpine no están recolectando nada, no habrá alertas. Tampoco hay un SIEM centralizado.
+
+Incluso podríamos acceder al sensor Alpine 1 (si logramos saltar desde el servidor web a la red de gestión, pero eso requeriría otra vulnerabilidad). Pero el punto es que aunque los sensores existen, no están siendo utilizados para monitoreo activo, por lo que el ataque pasa desapercibido.
+
+6. EVIDENCIAS A CAPTURAR (PARA DOCUMENTACIÓN)
+Captura del escaneo inicial a 10.0.0.10 mostrando puertos abiertos.
+
+Captura de la inyección SQL exitosa en DVWA (pantallazo con los datos obtenidos).
+
+Captura del acceso SSH al servidor (si se logra).
+
+Captura de la eliminación de logs (comandos ejecutados).
+
+Demostración de que no hay registros: por ejemplo, mostrar que el archivo /var/log/apache2/access.log está vacío después del ataque.
+
+Opcional: Captura de Wireshark desde la perspectiva del atacante mostrando la comunicación con el servidor web.
+
+7. LECCIONES APRENDIDAS (PARA EL INFORME)
+La segmentación de red es necesaria pero no suficiente: sin monitoreo, los ataques pueden completarse sin ser detectados.
+
+Los logs son la base del análisis forense y la detección temprana. Si no se conservan adecuadamente, es imposible investigar incidentes.
+
+Los sensores de seguridad (como Alpine) deben estar activamente recolectando y centralizando información, no simplemente existir en la red.
+
+El borrado de logs es una técnica común de los atacantes para cubrir sus huellas; por eso es crucial tener copias externas (centralización de logs).
+
+Una empresa puede tener una infraestructura técnicamente correcta (firewall, segmentación) y aún así ser vulnerable si no hay visibilidad.
+
+8. RELACIÓN CON EL PROYECTO YAS
+Este caso resalta la necesidad de:
+
+Formar profesionales en implementación y configuración de sistemas de monitoreo (SIEM, IDS/IPS, centralización de logs).
+
+Enseñar buenas prácticas de retención y rotación de logs.
+
+Concienciar sobre la importancia de la visibilidad en seguridad.
+
+Practicar la detección de ataques mediante análisis de logs (algo que en YAS se podrá hacer con sensores bien configurados).
+
+YAS proporcionará un entorno donde los alumnos puedan:
+
+Configurar un servidor de logs centralizado (rsyslog, ELK, etc.).
+
+Aprender a detectar ataques analizando logs.
+
+Simular incidentes y practicar respuestas basadas en evidencias.
+
+9. RECURSOS NECESARIOS Y POSIBLES PROBLEMAS
+Recursos necesarios:
+Máquinas virtuales:
+
+Kali Linux (atacante)
+
+pfSense (firewall)
+
+Ubuntu Server (servidor web con DVWA)
+
+Windows 10 (PC administrador)
+
+Alpine Linux (2 instancias para sensores)
+
+GNS3 con integración a VirtualBox (todas las VMs deben estar importadas).
+
+Imagen de pfSense (se puede descargar de la web oficial, formato ISO para instalar en VM).
+
+Conocimientos básicos de configuración de pfSense (asignación de interfaces, reglas de firewall).
+
+Posibles problemas y soluciones:
+pfSense no arranca o no reconoce las interfaces:
+
+Asegurar que en VirtualBox las interfaces están en el modo "Red Interna" correcto y con nombres consistentes.
+
+En la consola de pfSense, asignar manualmente las interfaces con la opción "Assign Interfaces".
+
+Verificar que los nombres de las redes internas en GNS3 coincidan con los de VirtualBox.
+
+Conectividad entre zonas:
+
+Después de configurar pfSense, probar conectividad básica. Si no hay ping, revisar reglas de firewall (por defecto pfSense bloquea todo). Crear reglas que permitan ICMP para pruebas, pero luego eliminarlas o mantenerlas solo para debugging.
+
+Recordar que en pfSense, las reglas se aplican por interfaz. Por ejemplo, para permitir que WAN acceda a DMZ, crear regla en interfaz WAN con destino DMZ.
+
+DVWA no accesible desde Kali:
+
+Verificar que en Ubuntu, Apache está corriendo y escuchando en 0.0.0.0.
+
+Comprobar que no hay firewall en Ubuntu (ufw desactivado).
+
+Desde Kali, probar con curl http://10.0.0.10.
+
+Logs que no se borran fácilmente:
+
+Para simular ausencia de logs, se puede simplemente no configurar logging en Apache (comentar las directivas CustomLog y ErrorLog). O usar un script que vacíe los archivos periódicamente.
+
+En el ataque, el alumno puede borrar manualmente los logs.
+
+Windows 10 no responde:
+
+Asegurar que el firewall de Windows permite al menos ping (ICMP) para pruebas. O desactivarlo temporalmente.
+
+Si se quiere compartir carpeta, habilitar "Compartir archivos e impresoras" en el firewall.
+
+Alpine sin conectividad:
+
+En Alpine, configurar la interfaz con setup-interfaces o editar /etc/network/interfaces.
+
+Verificar que el gateway es 192.168.1.1 y que pueden hacer ping a pfSense.
+
+Rendimiento:
+
+pfSense puede consumir bastantes recursos (1 GB RAM mínimo). Si el equipo es limitado, usar una imagen más ligera de firewall como VyOS, pero pfSense es más amigable para este caso.
+
+Reducir RAM de las VMs al mínimo: Kali 1 GB, Ubuntu 512 MB, Windows 1.5 GB, Alpine 128 MB, pfSense 512 MB.
+
