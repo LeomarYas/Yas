@@ -253,3 +253,10 @@ Practicar cómo responder cuando un atacante se mueve lateralmente.
 Aprender a segmentar redes correctamente.
 
 YAS proporcionará un laboratorio donde se puedan simular estas situaciones sin poner en riesgo sistemas reales.
+
+9. NOTAS PARA EL EQUIPO
+
+Recursos necesarios: Imágenes de Windows XP, Ubuntu Server, Kali, TinyCore. DVWA para Ubuntu.
+
+Posibles problemas: Que Windows XP no tenga el servicio SMB activo o que el firewall lo bloquee. Verificar antes del ataque.
+
