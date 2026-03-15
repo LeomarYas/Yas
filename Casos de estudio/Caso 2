@@ -1,0 +1,300 @@
+CASO 2: SERVIDORES CON CONFIGURACIONES POR DEFECTO
+"Default S.A."
+1. DESCRIPCIÓN GENERAL
+Esta empresa ficticia, "Default S.A.", ha instalado servidores y aplicaciones sin modificar las configuraciones por defecto. Esto incluye contraseñas en blanco, servicios innecesarios expuestos y paneles de administración accesibles públicamente. Es un escenario muy común en PyMEs que priorizan la funcionalidad sobre la seguridad, o en administradores novatos que desconocen los riesgos.
+
+2. OBJETIVO DEL CASO
+Demostrar que:
+
+Las configuraciones por defecto (contraseñas vacías, servicios innecesarios) son una puerta abierta para atacantes.
+
+Un escaneo básico puede revelar múltiples vectores de ataque.
+
+La falta de hardening inicial permite comprometer servidores críticos en minutos.
+
+Incluso con segmentación básica, si los servicios están mal configurados, la seguridad es ilusoria.
+
+3. CONFIGURACIÓN DETALLADA DEL ESCENARIO EN GNS3
+Vamos a construir la siguiente topología:
+
+text
+[Kali Linux] --- (Internet simulado con NAT) --- [Firewall básico (opcional)] --- [Switch] --- [Servidores]
+                                                                                           |
+                                                                                      [Cliente interno]
+Pero para simplificar, podemos poner todos los servidores directamente en una red con salida a Internet simulada (NAT) y el atacante también en esa red (o desde fuera, según queramos). Lo importante es que los servicios estén expuestos.
+
+Máquinas necesarias:
+Máquina	Sistema	Rol	IP (estática recomendada)	Servicios expuestos
+Atacante	Kali Linux	Red Team	192.168.1.100	-
+Víctima 1	Ubuntu Server 20.04	Servidor MySQL (mal configurado)	192.168.1.10	MySQL (3306) sin contraseña root, SSH (22)
+Víctima 2	Windows Server 2019 (o 2016)	Servidor IIS + FTP anónimo	192.168.1.20	HTTP (80), FTP (21) anónimo, RDP (3389)
+Víctima 3	Ubuntu Server 20.04	Servidor web con PHPMyAdmin expuesto	192.168.1.30	HTTP (80) con PHPMyAdmin accesible, SSH (22)
+Cliente interno	TinyCore Linux	Empleado de la empresa	192.168.1.200	-
+Detalles de cada máquina:
+a) Kali Linux (atacante):
+
+Herramientas: nmap, Metasploit, mysql-client, ftp, hydra, etc.
+
+Se conecta a la misma red que los servidores (o a través de NAT simulando Internet).
+
+b) Ubuntu Server 1 (MySQL sin contraseña):
+
+Instalar MySQL Server: sudo apt install mysql-server
+
+Durante la instalación, no establecer contraseña para root (en versiones recientes, MySQL usa autenticación por socket, pero podemos cambiarlo para que permita conexiones remotas sin contraseña).
+
+Configurar MySQL para aceptar conexiones remotas: editar /etc/mysql/mysql.conf.d/mysqld.cnf, cambiar bind-address a 0.0.0.0.
+
+Crear un usuario root que permita conexión desde cualquier host sin contraseña (inseguro a propósito):
+
+sql
+CREATE USER 'root'@'%' IDENTIFIED BY '';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
+FLUSH PRIVILEGES;
+Crear una base de datos de ejemplo (ej: empresa) con alguna tabla y datos ficticios (clientes, productos).
+
+c) Windows Server (IIS + FTP anónimo):
+
+Instalar Windows Server con rol de IIS y FTP.
+
+Habilitar FTP anónimo: en el administrador de IIS, crear un sitio FTP, permitir conexiones anónimas y dar permisos de lectura/escritura en una carpeta (ej: C:\inetpub\ftproot).
+
+Dejar el firewall de Windows con reglas permisivas (o desactivado para facilitar).
+
+Opcional: instalar algún servicio adicional como Telnet (para mostrar más puertos abiertos).
+
+d) Ubuntu Server 2 (PHPMyAdmin expuesto):
+
+Instalar LAMP: sudo apt install apache2 mysql-server php libapache2-mod-php php-mysql
+
+Instalar PHPMyAdmin: sudo apt install phpmyadmin
+
+Durante la instalación, configurar para usar Apache y permitir la configuración automática de la base de datos.
+
+Asegurarse de que PHPMyAdmin sea accesible desde el navegador: http://192.168.1.30/phpmyadmin
+
+No cambiar la contraseña por defecto (en versiones antiguas, a veces la instalación deja sin contraseña o con contraseña vacía; si pide contraseña, podemos dejarla como 'root' sin contraseña o 'phpmyadmin' sin contraseña). El objetivo es que sea accesible sin autenticación o con credenciales débiles.
+
+e) Cliente interno (TinyCore):
+
+Máquina ligera para simular un empleado que navega por Internet. No es esencial para el ataque, pero sirve para mostrar que hay más hosts en la red.
+
+Puede tener un navegador básico (si se le instala) o simplemente usarse para hacer ping.
+
+4. PASOS PARA MONTAR EL ESCENARIO EN GNS3
+Paso 1: Crear el proyecto en GNS3.
+
+Nuevo proyecto: "Caso2_ConfiguracionesDefault".
+
+Paso 2: Importar las máquinas virtuales a GNS3 desde VirtualBox.
+
+Asegúrate de tener las VMs creadas en VirtualBox con una sola interfaz de red en modo "Red Interna" (para que solo se comuniquen dentro de GNS3). Así evitamos que los servicios vulnerables se expongan a tu red real.
+
+Nombra las VMs de forma reconocible: "Kali-Caso2", "Ubuntu-MySQL", "WindowsServer-FTP", "Ubuntu-PHPMyAdmin", "TinyCore-Cliente".
+
+Paso 3: Arrastrar dispositivos al área de trabajo.
+
+Un switch Ethernet de GNS3.
+
+Las 5 máquinas (Kali, tres servidores, cliente).
+
+Conectar todas al switch.
+
+Paso 4: Configurar las IPs estáticas.
+
+Asignar direcciones IP según la tabla. En Ubuntu, usar netplan o ifconfig. En Windows, interfaz gráfica.
+
+Verificar conectividad: desde Kali, hacer ping a todas las IPs. También desde los servidores entre sí.
+
+Paso 5: Verificar que los servicios están funcionando y accesibles.
+
+Desde Kali:
+
+mysql -h 192.168.1.10 -u root (debe conectar sin contraseña).
+
+ftp 192.168.1.20 (probar usuario anonymous, cualquier contraseña; debe listar archivos).
+
+Abrir navegador (o usar curl) para acceder a http://192.168.1.30/phpmyadmin (debe mostrar la página de login, pero quizá sin necesidad de credenciales si está mal configurado).
+
+Si algo no funciona, revisar servicios y firewalls internos (en Windows, desactivar firewall; en Ubuntu, verificar que los puertos están escuchando con ss -tlnp).
+
+5. ATAQUE PASO A PASO (DESDE KALI)
+Fase 1: Reconocimiento (Escaneo de red)
+
+Ejecutamos un escaneo de puertos y detección de servicios:
+
+bash
+nmap -sV -p- 192.168.1.0/24
+O más rápido, escaneando solo los puertos comunes:
+
+bash
+nmap -sV 192.168.1.0/24
+Resultado esperado:
+
+192.168.1.10: puerto 3306 (MySQL), 22 (SSH)
+
+192.168.1.20: puertos 21 (FTP), 80 (HTTP), 3389 (RDP), quizá 445 (SMB) si está activo
+
+192.168.1.30: puertos 80 (HTTP), 22 (SSH)
+
+192.168.1.200: sin puertos abiertos (o solo algunos si tiene servicios)
+
+Evidencia: Guardar salida con -oN escaneo_caso2.txt.
+
+Fase 2: Explotación del servidor MySQL sin contraseña
+
+Conectamos directamente al servidor MySQL:
+
+bash
+mysql -h 192.168.1.10 -u root
+Si la conexión es exitosa, estamos dentro de la base de datos. Podemos listar bases de datos:
+
+sql
+SHOW DATABASES;
+USE empresa;
+SHOW TABLES;
+SELECT * FROM clientes;
+Impacto: Podemos extraer información confidencial (nombres, emails, contraseñas en texto plano si las hubiera).
+
+Evidencia: Captura de pantalla de la consola mysql mostrando los datos.
+
+Fase 3: Explotación del FTP anónimo en Windows Server
+
+Nos conectamos vía FTP:
+
+bash
+ftp 192.168.1.20
+Nombre: anonymous, contraseña: cualquier cosa (ej: test).
+
+Una vez dentro, listamos archivos (ls) y vemos qué hay. Si tenemos permisos de escritura, podemos subir un archivo (por ejemplo, un archivo de texto con un mensaje de advertencia o incluso un script malicioso si el FTP permite subir ejecutables). Para este caso, basta con demostrar que podemos subir algo:
+
+text
+put prueba.txt
+Luego, si el servidor tiene un sitio web, quizá podamos acceder a ese archivo vía HTTP si está en un directorio público.
+
+Evidencia: Captura de la sesión FTP mostrando la subida.
+
+Fase 4: Ataque a PHPMyAdmin expuesto
+
+Abrimos el navegador en Kali y vamos a http://192.168.1.30/phpmyadmin. Si la instalación no tiene contraseña o tiene credenciales por defecto (root/vacío), intentamos acceder.
+
+Si logramos entrar, podemos ejecutar consultas SQL directamente sobre la base de datos. Por ejemplo, crear un usuario con privilegios o extraer información.
+
+También podríamos intentar subir una webshell si PHPMyAdmin permite ejecutar archivos SQL que contengan código PHP (aunque es más complejo). Pero lo simple es demostrar que podemos ver y modificar bases de datos.
+
+Evidencia: Captura de pantalla del panel de PHPMyAdmin mostrando las bases de datos.
+
+Fase 5: Movimiento lateral y persistencia (opcional)
+
+Si queremos mostrar más impacto, desde el servidor MySQL (que es Ubuntu) podríamos intentar conectarnos por SSH usando credenciales débiles. Por ejemplo, probar usuario root con contraseña vacía o admin con admin. Pero en este caso, el servidor MySQL solo tiene el puerto 22 abierto, y si no hemos configurado una contraseña débil para SSH, no podremos entrar. Sin embargo, podríamos instalar una backdoor vía MySQL si tenemos permisos de escritura en el sistema de archivos (escribir un archivo en /tmp, etc.). Pero eso es más avanzado.
+
+Otra opción es usar el servidor Windows como pivote, si tiene vulnerabilidades adicionales (por ejemplo, EternalBlue si es Windows Server sin parches). Pero en este caso nos centramos en configuraciones por defecto, no en falta de parches.
+
+Para el caso, con comprometer los tres servicios (MySQL, FTP, PHPMyAdmin) es suficiente para demostrar el riesgo.
+
+6. EVIDENCIAS A CAPTURAR (PARA DOCUMENTACIÓN)
+Salida de nmap mostrando los puertos abiertos.
+
+Captura de pantalla de la conexión MySQL sin contraseña y mostrando datos de una tabla.
+
+Captura de pantalla de la sesión FTP anónima con listado de archivos y subida de un archivo de prueba.
+
+Captura de pantalla del panel de PHPMyAdmin accesible (mostrando la URL y la interfaz).
+
+Opcional: Captura de Wireshark durante algún ataque (por ejemplo, la conexión MySQL, para ver que las credenciales viajan en texto plano si no hay SSL).
+
+7. LECCIONES APRENDIDAS (PARA EL INFORME)
+Las configuraciones por defecto son un riesgo grave: contraseñas vacías, servicios innecesarios, paneles de administración expuestos.
+
+Un escaneo básico de puertos revela inmediatamente estos vectores.
+
+La seguridad por oscuridad (no cambiar lo que viene por defecto) no funciona.
+
+Es fundamental realizar hardening desde el primer momento: cambiar contraseñas, deshabilitar servicios no necesarios, restringir acceso a paneles de administración por IP o mediante autenticación fuerte.
+
+Incluso con firewall perimetral, si los servicios internos están mal configurados, un atacante que logre acceso a la red interna (por ejemplo, mediante un empleado) puede comprometerlos fácilmente.
+
+8. RELACIÓN CON EL PROYECTO YAS
+Este caso justifica la necesidad de entrenar administradores en:
+
+Procedimientos de hardening para servidores.
+
+Concienciación sobre riesgos de configuraciones por defecto.
+
+Uso de herramientas de escaneo y auditoría para detectar estos fallos.
+
+Prácticas de aseguramiento de bases de datos, servicios FTP y aplicaciones web.
+
+YAS proporcionará un entorno donde los alumnos puedan practicar la identificación y corrección de estas malas prácticas sin temor a dañar sistemas productivos.
+
+9. RECURSOS NECESARIOS Y POSIBLES PROBLEMAS
+Recursos necesarios:
+Imágenes de máquinas virtuales:
+
+Kali Linux (oficial, desde https://www.kali.org/get-kali/)
+
+Ubuntu Server 20.04 LTS (ISO desde https://ubuntu.com/download/server)
+
+Windows Server 2019 (o 2016) con licencia de prueba (disponible en sitio de Microsoft Evaluation Center)
+
+TinyCore Linux (opcional, desde http://tinycorelinux.net/)
+
+Software adicional:
+
+GNS3 instalado en Debian (ya lo tienes)
+
+VirtualBox con Extension Pack (para mejor integración)
+
+Configuraciones específicas:
+
+En Ubuntu, instalar MySQL, Apache, PHP, PHPMyAdmin.
+
+En Windows, instalar IIS y FTP.
+
+Posibles problemas y soluciones:
+MySQL no permite conexiones remotas:
+
+Verificar que bind-address está en 0.0.0.0 y que el usuario root tiene permiso desde '%'.
+
+Comprobar que el firewall de Ubuntu no bloquea el puerto 3306 (si usas ufw, permitirlo).
+
+Desde Kali, probar con telnet 192.168.1.10 3306 para ver si el puerto está abierto.
+
+FTP anónimo no funciona en Windows:
+
+Asegurar que el servicio FTP está iniciado.
+
+En el firewall de Windows, crear regla de entrada para puerto 21.
+
+Verificar que la carpeta FTP tiene permisos de lectura para el usuario anónimo (IUSR).
+
+Probar desde Kali con ftp y ver si pide usuario/contraseña.
+
+PHPMyAdmin no accesible:
+
+Confirmar que Apache está corriendo (systemctl status apache2).
+
+Verificar que PHPMyAdmin está instalado en /usr/share/phpmyadmin y que Apache tiene un enlace simbólico o configuración que lo sirva (normalmente se crea automáticamente).
+
+Probar con curl http://192.168.1.30/phpmyadmin desde Kali para ver si devuelve HTML.
+
+Problemas de conectividad en GNS3:
+
+Si las máquinas no hacen ping entre sí, verificar que todas están en la misma subred y que las interfaces están activas (en Ubuntu, ip link set eth0 up).
+
+En GNS3, asegurarse de que los cables están conectados correctamente y los dispositivos encendidos.
+
+Si usas adaptador "Red Interna" en VirtualBox, deben estar en el mismo nombre de red interna (ej: "intnet").
+
+Rendimiento:
+
+Si el equipo no es muy potente, puedes reducir recursos: asignar poca RAM a las máquinas (512 MB para Ubuntu server, 1 GB para Windows Server), y usar TinyCore en lugar de otra Ubuntu para cliente.
+
+Cerrar otras aplicaciones.
+
+Licencias de Windows:
+
+Usar versiones de evaluación que expiran a los 180 días, suficientes para el proyecto.
+
+Alternativa: usar Windows 10 en lugar de Server, pero puede tener limitaciones en servicios como FTP.
+
