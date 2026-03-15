@@ -242,3 +242,14 @@ La segmentación de red (DMZ, VLANs) habría contenido el ataque: el servidor we
 El WiFi de invitados debe estar aislado de la red interna.
 
 Las impresoras y otros dispositivos IoT suelen ser olvidados en seguridad y pueden ser puerta de entrada.
+
+8. RELACIÓN CON EL PROYECTO YAS
+Este caso demuestra que las empresas necesitan:
+
+Entornos controlados para entrenar a su personal en detección de este tipo de vulnerabilidades.
+
+Practicar cómo responder cuando un atacante se mueve lateralmente.
+
+Aprender a segmentar redes correctamente.
+
+YAS proporcionará un laboratorio donde se puedan simular estas situaciones sin poner en riesgo sistemas reales.
