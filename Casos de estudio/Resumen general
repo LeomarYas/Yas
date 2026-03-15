@@ -1,0 +1,226 @@
+OBJETIVO GENERAL
+
+Simular empresas con malas prácticas de seguridad en GNS3 para demostrar la necesidad de un laboratorio controlado como YAS. Cada caso generará evidencias (capturas, logs, informes) que justifiquen la parte pedagógica del proyecto.
+
+
+CASO 1: EMPRESA SIN SEGMENTACIÓN DE RED
+(PYME con red plana)
+
+Empresa ficticia: "La Red Plana S.A.S"
+
+Descripción:
+Pequeña empresa que tiene todo en la misma red: servidores, PCs de empleados, impresoras y WiFi de invitados conectado a la misma VLAN. No hay firewall interno ni segmentación.
+
+Malas prácticas evidenciadas:
+
+Red plana (sin DMZ)
+
+Windows XP sin parches (sistema operativo sin soporte)
+
+Impresora con interfaz web pública
+
+WiFi sin aislamiento de clientes
+
+Configuración en GNS3:
+
+Una sola subred (192.168.1.0/24) con switch simple
+
+Servidor Ubuntu con DVWA (tienda online)
+
+PC Windows XP de recepcionista
+
+Impresora con HP Web Jetadmin expuesto
+
+Punto de acceso WiFi simulado (sin aislamiento)
+
+Atacante: Kali Linux conectado a la misma red
+
+Ataque a realizar:
+
+Escaneo de red con nmap (descubre todos los dispositivos)
+
+Ataque a EternalBlue en Windows XP (MS17-010) con Metasploit
+
+Acceso a la impresora y modificación de configuración
+
+Movimiento lateral hacia el servidor web (misma red)
+
+Lo que demuestra:
+La falta de segmentación permite que un punto débil (WiFi o Windows XP) comprometa toda la empresa.
+
+
+
+CASO 2: SERVIDORES CON CONFIGURACIONES POR DEFECTO
+(Empresa "Default S.A.")
+
+Empresa ficticia: "Configuraciones Default S.A.S"
+
+Descripción:
+Empresa que instaló servidores y aplicaciones sin cambiar configuraciones por defecto. Contraseñas en blanco, servicios innecesarios expuestos.
+
+Malas prácticas evidenciadas:
+
+Contraseñas por defecto (MySQL root sin contraseña)
+
+Servicios innecesarios expuestos (FTP anónimo)
+
+PHPMyAdmin accesible públicamente sin autenticación
+
+Configuración en GNS3:
+
+Segmentación básica con reglas laxas
+
+Servidor Ubuntu con MySQL (root sin contraseña)
+
+Servidor Windows Server con IIS y FTP anónimo
+
+Aplicación web PHPMyAdmin accesible públicamente
+
+Atacante: Kali Linux desde Internet (NAT)
+
+Ataque a realizar:
+
+Escaneo detecta MySQL (3306), FTP (21), HTTP (80)
+
+Acceso a MySQL con root vacío (descarga de bases de datos)
+
+Subida de webshell vía FTP anónimo
+
+Escalada en el servidor Windows
+
+Lo que demuestra:
+La importancia de hardening y configuración segura desde el inicio.
+
+Tiempo estimado total: 2 semanas
+
+
+
+CASO 3: FALTA DE MONITOREO Y LOGS
+(Empresa "Sin Logs C.A.")
+
+Empresa ficticia: "Sin Monitoreo S.A.S"
+
+Descripción:
+Empresa con red correctamente segmentada pero sin sistemas de detección, logs desactivados y sin centralización.
+
+Malas prácticas evidenciadas:
+
+No hay IDS/IPS
+
+Logs desactivados o sobrescritos
+
+Ausencia de centralización de logs
+
+Configuración en GNS3:
+
+Red segmentada (DMZ, interna, gestión) con pfSense básico
+
+Servidor web en DMZ con DVWA
+
+Servidor de base de datos en interna
+
+Estación de trabajo de administrador
+
+Atacante: BlackArch desde Internet
+
+Ataque a realizar:
+
+Ataque de inyección SQL a DVWA (robo de credenciales)
+
+Acceso al servidor web
+
+Movimiento lateral hacia la base de datos
+
+Borrado de logs para cubrir huellas
+
+Lo que demuestra:
+Sin monitoreo, los ataques pasan desapercibidos. La empresa no sabe que fue vulnerada hasta que hay daño.
+
+Tiempo estimado total: 2 semanas
+
+
+
+
+CASO 4: POLÍTICAS DE CONTRASEÑAS DÉBILES
+(Empresa "Contraseñas Fáciles Ltda.")
+
+Empresa ficticia: "Passwords Débiles S.A.S"
+
+Descripción:
+Empresa con contraseñas fáciles y reutilización de credenciales. Políticas de seguridad inexistentes.
+
+Malas prácticas evidenciadas:
+
+Contraseñas como "admin123", "empresa2024"
+
+Cuentas de servicio con contraseñas escritas en archivos de texto
+
+Sin bloqueo de cuentas tras intentos fallidos
+
+Configuración en GNS3:
+
+Pequeño dominio Windows (Controlador de dominio)
+
+Política de contraseñas débiles (mínimo 4 caracteres)
+
+PCs con usuarios locales con mismas contraseñas
+
+Servidor de archivos compartido sin permisos finos
+
+Atacante: Kali Linux en red interna (empleado)
+
+Ataque a realizar:
+
+Fuerza bruta con Hydra a RDP o SMB
+
+Acceso a PC de usuario y extracción de hashes con mimikatz
+
+Ataque de pass-the-hash para moverse al dominio
+
+Lo que demuestra:
+La necesidad de políticas de contraseñas robustas y autenticación multifactor.
+
+Tiempo estimado total: 1 semana
+
+
+
+
+CASO 5: ACTUALIZACIONES Y PARCHES OLVIDADOS
+(Empresa "Actualizaciones Olvidadas")
+
+Empresa ficticia: "Sin Parches S.A.S"
+
+Descripción:
+Empresa que no aplica parches de seguridad desde hace años. Sistemas obsoletos con vulnerabilidades conocidas.
+
+Malas prácticas evidenciadas:
+
+Todos los sistemas con vulnerabilidades conocidas y públicas (EternalBlue, Heartbleed, etc.)
+
+Firewall con reglas permisivas
+
+Versiones de software sin soporte
+
+Configuración en GNS3:
+
+Red similar al Caso 1 (plana) o segmentada (opcional)
+
+Windows 7 sin parches
+
+Ubuntu 16.04 con Apache viejo
+
+Router doméstico como gateway (sin actualizar)
+
+Atacante: Kali desde Internet
+
+Ataque a realizar:
+
+Escaneo detecta versiones antiguas
+
+Explotación de múltiples vulnerabilidades
+
+Toma de control total de la red
+
+Lo que demuestra:
+El riesgo de no mantener actualizados los sistemas.
+
