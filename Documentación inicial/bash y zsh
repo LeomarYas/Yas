@@ -1,0 +1,12 @@
+* Aclarión: Aunque esto forma gran parte de la categoria linux, debemos saber a mover bash y zsh completamente para configurar cada cosa. Recordar que bash es el lengua shell, onda, la terminal, y zsh es un derivado de bash más potente. No usarémos fish dado que no es usado fuera de uso personal.
+
+https://www.codecademy.com/resources/blog/what-is-bash-used-for - Bash
+https://www.linuxcommand.org/index.php - Linux comands.org
+https://swcarpentry.github.io/shell-novice/ - Introducción a la shell de unix
+https://tldp.org/LDP/Bash-Beginners-Guide/html/ - Guia fea pero completa de bash
+https://tldp.org/LDP/abs/html/ - Guia fea pero avanzada
+https://linuxhandbook.com/learn-zsh/ - Guia zsh
+https://wiki.debian.org/Zsh - Zsh para debian
+https://wiki.archlinux.org/title/Zsh - zsh para arch
+https://ocw.cs.pub.ro/courses/ii/labs/01/tasks/01 - Personalización de zsh
+https://wiki.zshell.dev/community/zsh_handbook - Guia documentada y completa de zsh
