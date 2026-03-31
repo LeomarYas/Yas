@@ -1,0 +1,293 @@
+Metodologías y Marcos de Trabajo
+MITRE ATT&CK (base de conocimiento de tácticas y técnicas de adversarios)
+
+PTES (Penetration Testing Execution Standard, estándar de ejecución de pruebas de penetración)
+
+OSSTMM (Open Source Security Testing Methodology Manual)
+
+OWASP Testing Guide (guía de pruebas de seguridad para aplicaciones web)
+
+ISSAF (Information Systems Security Assessment Framework)
+
+NIST SP 800-115 (Guía técnica para pruebas de seguridad y evaluación de vulnerabilidades)
+
+NIST Cybersecurity Framework (CSF)
+
+COBIT (marco de gobierno de TI)
+
+Zero Trust (modelo de seguridad de confianza cero)
+
+ISO/IEC 27001 (Sistema de Gestión de Seguridad de la Información)
+
+CIS Controls (controles de seguridad priorizados)
+
+SANS Incident Response Process (proceso de respuesta a incidentes de 6 fases)
+
+SOC 2 (estándar de controles de sistemas y organizaciones)
+
+Protocolos y Estándares de Red
+VLAN (Virtual Local Area Network)
+
+IEEE 802.1Q (estándar de etiquetado VLAN)
+
+NAT (Network Address Translation)
+
+SNAT (Source NAT)
+
+DNAT (Destination NAT)
+
+PAT (Port Address Translation)
+
+SSH (Secure Shell)
+
+TLS (Transport Layer Security)
+
+SSL (Secure Sockets Layer)
+
+PKI (Public Key Infrastructure, Infraestructura de Clave Pública)
+
+VPN (Virtual Private Network)
+
+IPsec (Internet Protocol Security)
+
+OpenVPN
+
+ACL (Access Control List)
+
+DMZ (Demilitarized Zone)
+
+Tunneling (encapsulación de protocolos)
+
+TIA/EIA-568 (estándar de cableado estructurado)
+
+ISO/IEC 11801 (estándar internacional de cableado genérico)
+
+Conceptos Fundamentales de Seguridad
+TTP (Tácticas, Técnicas y Procedimientos)
+
+CVE (Common Vulnerabilities and Exposures)
+
+CVSS (Common Vulnerability Scoring System)
+
+IoC (Indicators of Compromise, indicadores de compromiso)
+
+IoA (Indicators of Attack, indicadores de ataque)
+
+Hardening (endurecimiento de sistemas)
+
+Threat Intelligence (inteligencia de amenazas)
+
+SOC (Security Operations Center)
+
+Incident Response (respuesta a incidentes)
+
+Adversary Emulation (emulación de adversarios)
+
+Purple Team (equipo que fusiona ataque y defensa)
+
+OSINT (Open Source Intelligence)
+
+Honeypot (sistema señuelo)
+
+Honeynet (red de señuelos)
+
+Breach and Attack Simulation (BAS)
+
+Adversarial Exposure Validation (AEV)
+
+DFIR (Digital Forensics and Incident Response)
+
+Tecnologías de Virtualización y Redes
+Proxmox VE
+
+LVM-thin provisioning (aprovisionamiento ligero de almacenamiento)
+
+KVM (Kernel-based Virtual Machine)
+
+QEMU
+
+VirtualBox
+
+GNS3 (emulador de redes)
+
+Linux Bridge (puente de red virtual)
+
+Open vSwitch (OVS)
+
+Network Namespaces (espacios de nombres de red)
+
+Veth pairs (pares de interfaces Ethernet virtuales)
+
+VXLAN
+
+Herramientas de Ciberseguridad
+Herramientas de Red Team
+Kali Linux
+
+Metasploit Framework
+
+Nmap
+
+Hydra
+
+Burp Suite
+
+Mimikatz
+
+SQLmap
+
+John the Ripper
+
+Aircrack-ng
+
+Wireshark
+
+Maltego (herramienta OSINT)
+
+SpiderFoot (automatización OSINT)
+
+Herramientas de Blue Team
+Snort (IDS/IPS)
+
+Suricata (IDS/IPS)
+
+Zeek (analizador de tráfico de red)
+
+SIEM (Security Information and Event Management)
+
+SOAR (Security Orchestration, Automation and Response)
+
+EDR (Endpoint Detection and Response)
+
+XDR (Extended Detection and Response)
+
+Wazuh (plataforma de seguridad open source)
+
+OSSEC (HIDS)
+
+pfSense (firewall)
+
+Fail2ban
+
+Infraestructura Física y Data Center
+Electricidad y Seguridad Eléctrica
+RETIE (Reglamento Técnico de Instalaciones Eléctricas de Colombia)
+
+Certificación RETIE (requisito legal para nuevas instalaciones eléctricas en Colombia)
+
+Sistemas de Enfriamiento
+CRAC (Computer Room Air Conditioner)
+
+CRAH (Computer Room Air Handler)
+
+Direct Expansion (DX) cooling (enfriamiento por expansión directa)
+
+Chilled water systems (sistemas de agua fría)
+
+Seguridad Física
+Seguridad perimetral (vallas, barreras físicas)
+
+Control de acceso biométrico (huella digital, facial, iris)
+
+Sistemas de control de acceso (tarjetas, PIN, biometría)
+
+Vigilancia y monitoreo
+
+Cámaras de seguridad
+
+Protección contra Incendios
+Clean agent suppression systems (sistemas de supresión con agentes limpios)
+
+FM-200 (agente limpio para protección de equipos electrónicos)
+
+Novec 1230 (agente limpio sin residuos)
+
+INERGEN (gas inerte para supresión de incendios)
+
+IG-55 (mezcla de gases inertes)
+
+NFPA 2001 (estándar para sistemas de agentes limpios)
+
+Automatización y Scripting
+Bash scripting
+
+Python scripting
+
+PowerShell scripting
+
+Cron (programador de tareas)
+
+Crontab (tabla de programación de tareas)
+
+Estándares y Buenas Prácticas
+Principio de privilegio mínimo (least privilege)
+
+Autenticación multifactor (MFA)
+
+Cifrado de comunicaciones (TLS/SSL)
+
+Copias de seguridad regulares (backups)
+
+Gestión de parches (patch management)
+
+Principio de "nunca confiar, siempre verificar" (Zero Trust)
+
+Segmentación de red (network segmentation)
+
+Tipos de Pruebas de Seguridad
+Penetration Testing (prueba de penetración)
+
+Vulnerability Assessment (evaluación de vulnerabilidades)
+
+Stress Testing (prueba de estrés)
+
+Load Testing (prueba de carga)
+
+Adversary Simulation (simulación de adversarios)
+
+Red Teaming (ejercicios con equipo rojo)
+
+Blue Teaming (ejercicios con equipo azul)
+
+Purple Teaming (colaboración entre equipos rojo y azul)
+
+Ingeniería Social
+Phishing (suplantación de identidad)
+
+Spear phishing (phishing dirigido)
+
+Pretexting (creación de un escenario falso)
+
+Baiting (cebo)
+
+Tailgating (seguimiento)
+
+Quid pro quo (intercambio de favores)
+
+Vishing (phishing por voz)
+
+Smishing (phishing por SMS)
+
+Análisis y Forense Digital
+Análisis de malware estático (sin ejecutar el código)
+
+Análisis de malware dinámico (ejecución en entorno controlado)
+
+Análisis forense digital (recuperación e investigación de evidencia digital)
+
+Computer forensics (forensia informática)
+
+Network forensics (forensia de red)
+
+Seguridad en Redes
+Firewall de red (iptables, nftables)
+
+IDS (Intrusion Detection System)
+
+IPS (Intrusion Prevention System)
+
+NDR (Network Detection and Response)
+
+DPI (Deep Packet Inspection)
+
+Port mirroring (copia de puertos)
