@@ -1,5 +1,23 @@
+Fine tuning
+
 https://www.databricks.com/blog/what-is-fine-tuning - Que es fine tuning
 https://somosnlp.org/recursos/tutoriales/07_entrenamiento_finetuning - tutorial fine tuning
 https://www.iic.uam.es/procesamiento-del-lenguaje-natural/que-es-fine-tuning-por-que-util-llms/ - utilidades del fine tuning
 https://www.ibm.com/es-es/think/topics/fine-tuning - explicación extensa
 https://d2l.ai/chapter_computer-vision/fine-tuning.html - paso a paso tecnico
+https://github.com/unslothai/unsloth - Git unsloth
+https://github.com/axolotl-ai-cloud/axolotl - Axoloth
+https://becomingahacker.org/fine-tuning-ai-models-the-easy-way-4a2e7d00cdee - Explicación facil
+
+
+--------------------------------
+Cuantización
+https://cast.ai/blog/demystifying-quantizations-llms/ - Explicación
+https://developer.nvidia.com/blog/model-quantization-concepts-methods-and-why-it-matters/ - Nvidia(?
+
+
+-----------------------------
+Ollama 
+https://huggingface.co/WhiteRabbitNeo - WhiteRabbitNeo
+https://taico.ca/posts/run-whiterabbitneo-locally/ - Correr Ollama WRN en local
+https://github.com/ollama/ollama - Git Ollama
