@@ -29,3 +29,4 @@ Nodo de enjambre - Ataques DDos sincronizados
 Nodo de escaneo - Reconocimiento de vulnerabilidades
 Nodo de infiltración - Robo de datos 
 Nodo señuelo - Honeypot, esta herramienta es principalmente para blue
+Nodo de logs - Generar logs pseusoaleatorios para los servidores
