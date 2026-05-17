@@ -1,0 +1,18 @@
+Titulo: Servicios por defecto
+Objetivo: Demostrar como dejar las cuentas/Contraseñas por defecto puede ser una fuerte vulnerabilida en un entorno real
+
+Tablas de IP:
+  Debian con phpmyadmin: 10.4.0.10
+  Ununtu server con mysql: 10.4.0.20
+  Windows Server ftp: 10.4.0.30
+  Kali linux: 10.4.0.200
+  Gateway: 10.4.0.1
+
+Topologia:
+  No hubo separación de red ni firewall activo, simulando casos de pequeñas empresas sin una administración de red bien planeada. Todo se conectó a un switch principal.
+
+Durante el ataque se procedió a utilizar nmap para encontrar ips en la red y puertos abiertos. 
+Luego de encontrar cada IP y su respectivo puerto, se procedió a utilizar un metodo distinto en cada uno.
+Para el servidor Debian phpmyadmin se buscó mediante Curl -I. Luego de ver que hay conectividad, se entró con la credencial "admin", tipica del programa. Ahí dentro se pudo ver el contenido completo del servidor.
+Para el servidor Ubuntu con mysql, se entró mediante terminal con el comando "mysql -h 10.4.0.20 -u root --ssl=0". Esto ultimo "--ssl=0" para evitar verifiaciones de certificados. Estando dentro, se utilizó SHOW DATABASES; para ver todas las bases de datos en el servidor. Posteriormente se entró a la tabla "Empresa" con USE empresa;. Por ultimo, se revisó el contenido entero con SELECT * FROM clientes;. Con esto se descubrió la credencial que habia guardada.
+Por ultimo, luego de crear un archivo .txt en kali, se procedió a entrar al ftp via terminal con el comando "ftp 10.4.0.30", utilizando la credencial "anonymous", demostrando que durante la instalación del ftp, se dejó está funcion activa. Ahí dentró se procedió a revisar el servidor con el comando ls, y posteriormente se subió el .txt hecho en kali. Mediante un metodo así se podria adentrar un virus de cualquier tipo sin ningun problema.
