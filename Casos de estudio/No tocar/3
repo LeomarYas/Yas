@@ -1,0 +1,91 @@
+Título: Falta de monitoreo y logs – "Sin Logs C.A."
+Objetivo: Demostrar que una red correctamente segmentada puede ser vulnerada sin detección si no existe monitoreo, los logs están desactivados o se sobrescriben, y no hay centralización de eventos.
+
+Tabla de IPs y subredes
+Zona	Subred	Dispositivo	IP
+WAN	10.7.0.0/24	Kali Linux (atacante)	10.7.0.100
+pfSense (WAN)	10.7.0.1
+DMZ	10.4.0.0/24	Debian (DVWA)	10.4.0.10
+pfSense (DMZ)	10.4.0.1
+Interna	10.5.0.0/24	Windows Server (admin)	10.5.0.100
+pfSense (INTERNA)	10.5.0.1
+Gestión	10.6.0.0/24	Alpine Linux 1 (sensor)	10.6.0.10
+Alpine Linux 2 (sensor)	10.6.0.20
+pfSense (GESTION)	10.6.0.1
+Topología
+Se utilizaron cuatro switches Ethernet en GNS3 (SW_WAN, SW_DMZ, SW_INTERNA, SW_GESTION) para separar físicamente cada zona.
+pfSense actúa como firewall central con 4 interfaces de red, una en cada subred.
+Las máquinas se conectan así:
+
+Kali → SW_WAN
+
+pfSense → eth0 (WAN) a SW_WAN, eth1 (DMZ) a SW_DMZ, eth2 (INTERNA) a SW_INTERNA, eth3 (GESTION) a SW_GESTION
+
+Debian → SW_DMZ
+
+Windows → SW_INTERNA
+
+Alpine1 y Alpine2 → SW_GESTION
+
+Sin reglas de firewall aún en pfSense (salvo las que se intentaron añadir para la GUI). La segmentación está física y lógicamente implementada, pero el firewall no está completamente operativo en este momento.
+
+Servicios y configuraciones por máquina
+pfSense (firewall)
+Sistema base: pfSense 2.6.0 (FreeBSD).
+
+4 interfaces asignadas: WAN, DMZ, INTERNA, GESTION.
+
+IPs configuradas correctamente en cada interfaz.
+
+Problema actual: No se pudo acceder a la GUI web ni por SSH desde Kali (fallo en reglas de firewall o en el comando de habilitación). Probablemente se reiniciará desde cero para retomar la configuración.
+
+Logging: Se planea desactivar el registro de reglas de firewall (opción 14 del menú) y no activar syslog, para cumplir con el objetivo del caso.
+
+Debian (servidor web en DMZ)
+Sistema: Debian (instalación nueva).
+
+Servicios instalados: Apache2, MariaDB, PHP (módulos necesarios), git (para clonar DVWA).
+
+DVWA clonado en /var/www/html/dvwa, configurado con base de datos dvwa y usuario admin sin contraseña en MySQL.
+
+Logs deshabilitados:
+
+Apache: ErrorLog y CustomLog redirigidos a /dev/null.
+
+MariaDB: líneas log_error comentadas en 50-server.cnf.
+
+IP estática 10.4.0.10/24, gateway 10.4.0.1.
+
+Firewall local desactivado (ufw disable).
+
+Windows Server (PC administrador en red Interna)
+Sistema: Windows Server (reutilizado del Caso 2).
+
+IP cambiada a 10.5.0.100/24, gateway 10.5.0.1.
+
+Firewall de Windows desactivado completamente.
+
+Carpeta C:\Confidencial creada y compartida con permisos totales para Everyone.
+
+Servicios heredados del Caso 2 (FTP, IIS) detenidos e inhabilitados.
+
+Alpine Linux 1 (sensor de logs en Gestión)
+Sistema: Alpine Linux (instalación mínima).
+
+IP estática 10.6.0.10/24, gateway 10.6.0.1.
+
+rsyslog instalado pero sin iniciar (simula un sensor que no está recolectando).
+
+Sin firewalls adicionales.
+
+Alpine Linux 2 (sensor de red en Gestión)
+Sistema: Alpine Linux (instalación mínima).
+
+IP estática 10.6.0.20/24, gateway 10.6.0.1.
+
+Sin servicios adicionales. Solo conectividad.
+
+Kali Linux (atacante en WAN)
+IP 10.7.0.100/24, gateway 10.7.0.1.
+
+Herramientas estándar: nmap, curl, ssh, ftp, mysql-client, etc.
