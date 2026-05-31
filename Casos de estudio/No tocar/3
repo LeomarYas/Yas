@@ -1,11 +1,11 @@
-Título: Falta de monitoreo y logs – "Sin Logs C.A."
+Título: Falta de monitoreo y logs 
 Objetivo: Demostrar que una red correctamente segmentada puede ser vulnerada sin detección si no existe monitoreo, los logs están desactivados o se sobrescriben, y no hay centralización de eventos.
 
-Tabla de IPs y subredes
+Tabla de IPs y zonas
 Zona	Subred	Dispositivo	IP
 WAN	10.7.0.0/24	Kali Linux (atacante)	10.7.0.100
 pfSense (WAN)	10.7.0.1
-DMZ	10.4.0.0/24	Debian (DVWA)	10.4.0.10
+DMZ	10.4.0.0/24	Debian (DVWA + Apache)	10.4.0.10
 pfSense (DMZ)	10.4.0.1
 Interna	10.5.0.0/24	Windows Server (admin)	10.5.0.100
 pfSense (INTERNA)	10.5.0.1
@@ -14,12 +14,12 @@ Alpine Linux 2 (sensor)	10.6.0.20
 pfSense (GESTION)	10.6.0.1
 Topología
 Se utilizaron cuatro switches Ethernet en GNS3 (SW_WAN, SW_DMZ, SW_INTERNA, SW_GESTION) para separar físicamente cada zona.
-pfSense actúa como firewall central con 4 interfaces de red, una en cada subred.
-Las máquinas se conectan así:
+pfSense actuó como firewall central con 4 interfaces de red, una en cada subred.
+Las conexiones fueron:
 
 Kali → SW_WAN
 
-pfSense → eth0 (WAN) a SW_WAN, eth1 (DMZ) a SW_DMZ, eth2 (INTERNA) a SW_INTERNA, eth3 (GESTION) a SW_GESTION
+pfSense: eth0 (WAN) a SW_WAN, eth1 (DMZ) a SW_DMZ, eth2 (INTERNA) a SW_INTERNA, eth3 (GESTION) a SW_GESTION
 
 Debian → SW_DMZ
 
@@ -27,65 +27,39 @@ Windows → SW_INTERNA
 
 Alpine1 y Alpine2 → SW_GESTION
 
-Sin reglas de firewall aún en pfSense (salvo las que se intentaron añadir para la GUI). La segmentación está física y lógicamente implementada, pero el firewall no está completamente operativo en este momento.
+Inicialmente se intentó configurar reglas de firewall en pfSense para permitir el ataque desde WAN a DMZ, pero debido a problemas recurrentes con la interfaz y la pérdida de reglas, se optó por desactivar temporalmente el filtrado (pfctl -d) para garantizar la conectividad, documentando esto como una mala práctica adicional.
 
-Servicios y configuraciones por máquina
-pfSense (firewall)
-Sistema base: pfSense 2.6.0 (FreeBSD).
+Configuraciones relevantes
+pfSense: logging de reglas de firewall desactivado (opción 14 del menú). Syslog deshabilitado desde la GUI.
 
-4 interfaces asignadas: WAN, DMZ, INTERNA, GESTION.
+Debian: Apache y MariaDB con logs redirigidos a /dev/null. DVWA instalado pero con problemas de configuración que impidieron la explotación vía web; sin embargo, se evidenció que los intentos de acceso no generaron registros. Usuario admin sin contraseña en MySQL y en el sistema.
 
-IPs configuradas correctamente en cada interfaz.
+Windows Server: carpeta C:\Confidencial compartida con permisos totales para Everyone. Firewall local desactivado.
 
-Problema actual: No se pudo acceder a la GUI web ni por SSH desde Kali (fallo en reglas de firewall o en el comando de habilitación). Probablemente se reiniciará desde cero para retomar la configuración.
+Alpine 1: rsyslog instalado pero detenido.
 
-Logging: Se planea desactivar el registro de reglas de firewall (opción 14 del menú) y no activar syslog, para cumplir con el objetivo del caso.
+Alpine 2: sin servicios de monitoreo.
 
-Debian (servidor web en DMZ)
-Sistema: Debian (instalación nueva).
+Desarrollo del ataque
+Reconocimiento: desde Kali se ejecutó nmap -sV 10.4.0.10, detectando los puertos 80 (HTTP) y 22 (SSH) abiertos.
 
-Servicios instalados: Apache2, MariaDB, PHP (módulos necesarios), git (para clonar DVWA).
+Intento de explotación web: se accedió a http://10.4.0.10/dvwa. Aunque la página no se cargó correctamente por un error de configuración en DVWA, se comprobó que no se generó ningún registro de estos intentos en los logs de Apache ni de MariaDB.
 
-DVWA clonado en /var/www/html/dvwa, configurado con base de datos dvwa y usuario admin sin contraseña en MySQL.
+Acceso directo por SSH: utilizando el usuario admin sin contraseña (creado previamente en el sistema), se estableció una sesión SSH desde Kali:
 
-Logs deshabilitados:
+bash
+ssh admin@10.4.0.10
+Esto demostró que incluso sin explotar la vulnerabilidad web, un atacante podía acceder al servidor mediante credenciales débiles.
 
-Apache: ErrorLog y CustomLog redirigidos a /dev/null.
+Intento de movimiento lateral: desde el servidor Debian se intentó hacer ping a la máquina Windows de la red interna (ping 10.5.0.100). El resultado fue fallido debido a la segmentación del firewall, pero este intento no fue alertado ni registrado en ninguna parte.
 
-MariaDB: líneas log_error comentadas en 50-server.cnf.
+Borrado de huellas: se eliminó el historial de comandos (history -c && rm ~/.bash_history). Los logs de Apache y MySQL ya estaban vacíos por la configuración previa, por lo que no quedó evidencia del acceso.
 
-IP estática 10.4.0.10/24, gateway 10.4.0.1.
+Verificación de ausencia de monitoreo:
 
-Firewall local desactivado (ufw disable).
+En Alpine1 se comprobó que rsyslog no estaba en ejecución.
 
-Windows Server (PC administrador en red Interna)
-Sistema: Windows Server (reutilizado del Caso 2).
+En pfSense los logs del sistema no mostraban eventos del ataque.
 
-IP cambiada a 10.5.0.100/24, gateway 10.5.0.1.
+En Debian, /var/log/apache2/error.log estaba vacío.
 
-Firewall de Windows desactivado completamente.
-
-Carpeta C:\Confidencial creada y compartida con permisos totales para Everyone.
-
-Servicios heredados del Caso 2 (FTP, IIS) detenidos e inhabilitados.
-
-Alpine Linux 1 (sensor de logs en Gestión)
-Sistema: Alpine Linux (instalación mínima).
-
-IP estática 10.6.0.10/24, gateway 10.6.0.1.
-
-rsyslog instalado pero sin iniciar (simula un sensor que no está recolectando).
-
-Sin firewalls adicionales.
-
-Alpine Linux 2 (sensor de red en Gestión)
-Sistema: Alpine Linux (instalación mínima).
-
-IP estática 10.6.0.20/24, gateway 10.6.0.1.
-
-Sin servicios adicionales. Solo conectividad.
-
-Kali Linux (atacante en WAN)
-IP 10.7.0.100/24, gateway 10.7.0.1.
-
-Herramientas estándar: nmap, curl, ssh, ftp, mysql-client, etc.
