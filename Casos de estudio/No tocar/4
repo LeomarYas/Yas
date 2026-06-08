@@ -1,0 +1,45 @@
+Título: Políticas de Contraseñas Débiles – "Contraseñas Fáciles Ltda."
+Objetivo: Demostrar que las contraseñas débiles, la falta de bloqueo de cuentas y los privilegios excesivos en recursos compartidos permiten a un atacante autenticarse, acceder a información sensible y potencialmente moverse lateralmente.
+
+Tabla de IPs y roles
+Dispositivo	IP	Rol y Configuración Clave
+Kali Linux	10.4.0.100	Máquina atacante con Remmina.
+DC (Windows Server)	10.4.0.10	Dominio facil.local. Contraseñas débiles y sin bloqueo de cuentas.
+Cliente (Windows 10)	10.4.0.20	Usuario jperez con contraseña Clave123. Recurso Importante escribible.
+Topología
+Se utilizó un switch Ethernet en GNS3 para conectar todas las máquinas en la misma subred 10.4.0.0/24. El atacante (Kali), el DC y el cliente Windows 10 estaban en el mismo segmento de red, simulando un empleado interno o un atacante que ya ha conseguido acceso a la red corporativa.
+
+Las conexiones fueron:
+
+Kali → SW_INTERNA
+
+DC (Windows Server) → SW_INTERNA
+
+Cliente (Windows 10) → SW_INTERNA
+
+Configuraciones relevantes
+DC (Windows Server): Dominio facil.local con políticas de contraseñas débiles (longitud mínima 4, sin complejidad, sin bloqueo de cuentas). Firewall local desactivado para simplificar las pruebas.
+
+Cliente (Windows 10): Unido al dominio. Usuario jperez con contraseña Clave123 y perteneciente al grupo de administradores locales. Carpeta C:\Importante compartida como Importante con permisos de escritura para todos. Firewall local desactivado.
+
+Kali Linux: Herramientas estándar como hydra, nmap, smbclient, rdesktop y remmina.
+
+Desarrollo del ataque
+1. Enumeración y Fuerza Bruta
+Se ejecutó hydra contra el servicio RDP del cliente (10.4.0.20):
+
+bash
+hydra -l jperez -P passwords.txt rdp://10.4.0.20
+La herramienta detectó que la cuenta jperez era válida y que no existía bloqueo tras múltiples intentos fallidos, confirmando la falta de políticas de seguridad.
+
+2. Acceso No Autorizado al Escritorio Remoto
+Tras verificar que el puerto 3389 estaba abierto y el servicio RDP habilitado, se utilizó Remmina desde Kali para establecer una conexión de escritorio remoto con las credenciales débiles (jperez / Clave123). Remmina evitó los problemas de compatibilidad de protocolos (CredSSP, SMB3) presentes en otras herramientas como rdesktop o smbclient, permitiendo el acceso gráfico completo al sistema.
+
+3. Compromiso de la Información
+Dentro de la sesión gráfica de Remmina, se navegó hasta la carpeta C:\Importante, verificando el acceso no autorizado a información sensible almacenada por el usuario legítimo. Se pudo listar el contenido y abrir archivos, demostrando el riesgo de robo o modificación de datos.
+
+4. Intento de Movimiento Lateral
+Con las mismas credenciales, se probó la conexión al DC (10.4.0.10) mediante impacket-psexec:
+
+bash
+impacket-psexec jperez:Clave123@10.4.0.10
