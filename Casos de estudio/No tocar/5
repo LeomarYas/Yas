@@ -1,0 +1,51 @@
+1. INTRODUCCIÓN
+"Actualizaciones Olvidadas S.A.S." es una empresa ficticia que ha descuidado las actualizaciones de seguridad durante años. El objetivo del caso fue demostrar que las vulnerabilidades conocidas y públicas (EternalBlue, Heartbleed, BlueKeep) siguen siendo explotables en sistemas sin parchar, y que la acumulación de deuda técnica en seguridad permite a un atacante comprometer toda la red.
+
+2. CONFIGURACIÓN DEL ESCENARIO
+Se montó una red plana en GNS3 con las siguientes máquinas:
+
+Máquina	IP	Sistema	Vulnerabilidades
+Kali Linux	10.4.0.20	Atacante	Herramientas: Metasploit, nmap, impacket
+Windows 7	10.4.0.7	SP1 32 bits	EternalBlue (SMBv1), RDP
+Ubuntu Server	10.4.0.10	16.04 LTS	Heartbleed (OpenSSL 1.0.1)
+Windows Server 2008	10.4.0.8	R2 64 bits	EternalBlue, BlueKeep
+No se utilizó router; todas las máquinas estaban en la misma subred.
+
+3. ATAQUES REALIZADOS
+3.1 Reconocimiento (Escaneo)
+bash
+nmap -sV -O 10.4.0.0/24
+Resultados:
+
+Win7: puertos 139, 445 (SMBv1), 3389 (RDP)
+
+Ubuntu: puertos 22 (SSH), 80 (HTTP), 443 (HTTPS)
+
+Win2008: puertos 139, 445 (SMB), 3389 (RDP)
+
+3.2 Windows 7
+Vulnerabilidad confirmada: nmap --script smb-protocols mostró SMBv1 activo.
+
+Explotación fallida con Metasploit: ms17_010_psexec dio error Unable to find accessible named pipe.
+
+Explotación exitosa con credenciales: Usando admin:a y psexec.py de impacket, se obtuvo shell de SYSTEM.
+
+Evidencia: whoami, systeminfo, ipconfig, creación de usuario hacker.
+
+3.3 Ubuntu Server
+Vulnerabilidad confirmada: Módulo openssl_heartbleed de Metasploit mostró Leaking heartbeat response #1.
+
+Evidencia: Extracción de certificado SSL y datos de memoria.
+
+3.4 Windows Server 2008
+Vulnerabilidad confirmada: Escáner smb_ms17_010 dijo Host is likely VULNERABLE.
+
+Explotación exitosa con ms17_010_psexec: Se obtuvo sesión Meterpreter con SYSTEM.
+
+Evidencia: sysinfo, getuid, ipconfig, extracción de hashes con kiwi.
+
+3.5 Movimiento lateral (intento)
+Se extrajeron hashes de Windows Server y se intentó pass-the-hash contra Windows 7, pero falló por falta de named pipes.
+
+Se usaron credenciales admin:a para acceder directamente a Win7.
+
