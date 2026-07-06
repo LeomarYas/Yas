@@ -1,0 +1,21 @@
+1. Introducción
+Descripción de "La Red Plana S.A.S." y el objetivo del caso.
+
+2. Configuración del escenario
+Topología en GNS3 (red plana, mismo switch, subred 10.4.0.0/24).
+
+Máquinas y sus IPs: Kali (10.4.0.20), Windows 7 (10.4.0.7), Ubuntu (10.4.0.10), Debian impresora (10.4.0.30).
+
+3. Ataque realizado
+Escaneo: nmap -sV -O 10.4.0.0/24 → identifica servicios.
+
+Compromiso de Windows 7: psexec.py con credenciales admin:a → shell de SYSTEM.
+
+Movimiento lateral: Ping a impresora (10.4.0.30) desde Windows 7 y desde Kali.
+
+Acceso a impresora: curl http://10.4.0.30 → interfaz web accesible.
+
+Acceso a servidor web: curl http://10.4.0.10 → servidor web expuesto.
+
+Enumeración de directorios: nmap --script http-enum → no encontró directorios, pero el servidor sigue accesible.
+
