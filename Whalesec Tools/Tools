@@ -1,0 +1,35 @@
+DOCKER ALPINE
+
+Kubernet -> orquesta el despliegue de todos los nodos
+Vulnerabilidades -> escanea servicios en busca de fallos de seguridad
+Tráfico DNS -> genera consultas DNS masivas para ataques de amplificación
+Tráfico L2 -> envía tramas de red para probar segmentación y VLAN hopping
+Espectro -> emula un punto de acceso WiFi falso para ataques inalámbricos
+Balanceador de cargas -> distribuye tráfico entre servidores simulados
+Clonación de Credenciales -> servidor web de phishing que roba credenciales
+Métricas -> exporta consumo de CPU, RAM y red de los nodos
+Playbooks -> ejecuta configuraciones remotas en masa
+Reportes forenses -> genera informes estructurados a partir de logs
+SOCKS -> proxy para anonimizar tráfico y crear túneles
+Exfiltración de datos -> extrae datos mediante túneles ICMP
+Reenviador Syslog -> recibe logs de nodos y los reenvía al central
+Ping Tunnel -> crea túneles de datos en paquetes ICMP
+Redireccionar ICMP -> manipula rutas de red con paquetes ICMP redirect
+Guardia SSH -> monitorea logs SSH y banea IPs maliciosas
+Enjambre -> lanza ataques DDoS volumétricos
+Escaneo -> reconoce puertos y servicios con Nmap
+Señuelo típico -> emula servicios genéricos (HTTP, FTP) para atraer atacantes
+Infiltración -> simula persistencia y backdoors (túneles, cron)
+Sanbox -> ejecuta archivos sospechosos en entorno aislado
+Honeypot alerta -> panel web falso que dispara alertas al ser tocado
+
+VM TCL
+
+Servicios de red básicos -> proporciona DNS, DHCP y NTP a la red
+VPN -> punto de entrada para atacantes externos (Wireguard/OpenVPN)
+SQL Honeypot -> emula base de datos MySQL/PostgreSQL con datos señuelo
+Backup honeypot -> simula servidor de backups con archivos señuelo
+Honeypot ssh/Telnet -> captura interacciones completas de atacantes en SSH/Telnet
+Honeypot impresora -> emula servidor de impresión LPD
+Cambios Críticos -> monitorea integridad de archivos y alerta sobre modificaciones
+Logs -> almacena y rota logs de todos los nodos
